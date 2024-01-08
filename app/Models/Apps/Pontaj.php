@@ -26,6 +26,6 @@ class Pontaj extends Model
      */
     public function actualizare(): BelongsTo
     {
-        return $this->belongsTo(actualizare::class, 'actualizare_id');
+        return $this->belongsTo(Actualizare::class, 'actualizare_id');
     }
 }
