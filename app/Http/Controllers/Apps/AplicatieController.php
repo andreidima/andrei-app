@@ -59,7 +59,7 @@ class AplicatieController extends Controller
             $pontajRequest = $request->session()->put('pontajRequest.aplicatie_id', $aplicatie->id);
         }
 
-        return redirect($request->session()->get('aplicatieReturnUrl') ?? ('/app/aplicatii'))->with('status', 'Aplicația „' . $aplicatie->nume . '” a fost adăugată cu succes!');
+        return redirect($request->session()->get('aplicatieReturnUrl') ?? ('/apps/aplicatii'))->with('status', 'Aplicația „' . $aplicatie->nume . '” a fost adăugată cu succes!');
     }
 
     /**
