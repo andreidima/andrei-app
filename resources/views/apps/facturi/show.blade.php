@@ -58,7 +58,7 @@
                                         @foreach ($factura->actualizari as $actualizare)
                                             @if ($loop->first)
                                                 <tr>
-                                                    <th class="text-center" style="border: 1px solid black">Actualizare</th>
+                                                    <th class="text-center" style="border: 1px solid black">Licrări</th>
                                                     <th class="text-center" style="border: 1px solid black">Preț</th>
                                                 </tr>
                                             @endif
