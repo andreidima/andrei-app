@@ -32,7 +32,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (\App\Models\Apps\Factura::whereDate('data', '<', Carbon::now())->whereNotNull('confirmare_client')->whereNull('confirmare_validsoftware')->get() as $factura)
+                        @foreach (\App\Models\Apps\Factura::whereDate('data', '<=', Carbon::now())->whereNotNull('confirmare_client')->whereNull('confirmare_validsoftware')->get() as $factura)
                             <tr>
                                 <td align="">
                                     {{ $nrCrt++ }}
@@ -45,7 +45,7 @@
                                 </td>
                             </tr>
                         @endforeach
-                        @foreach (\App\Models\Apps\Factura::whereDate('data', '<', Carbon::now())->whereNull('confirmare_client')->get() as $factura)
+                        @foreach (\App\Models\Apps\Factura::whereDate('data', '<=', Carbon::now())->whereNull('confirmare_client')->get() as $factura)
                             <tr>
                                 <td align="">
                                     {{ $nrCrt++ }}
