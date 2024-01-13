@@ -43,7 +43,7 @@
                 <label for="descriere" class="mb-0 ps-3">Descriere:</label>
                 <tinymce-vue
                     inputvalue="{{ old('descriere', $actualizare->descriere) }}"
-                    height= 300
+                    height= 600
                     inputname="descriere"
                 ></tinymce-vue>
             </div>
