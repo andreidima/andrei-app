@@ -25,7 +25,8 @@ class AplicatieController extends Controller
             when($searchNume, function ($query, $searchNume) {
                 return $query->where('nume', $searchNume);
             })
-            ->latest();
+            ->orderBy('nume');
+            // ->latest();
 
         $aplicatii = $query->simplePaginate(50);
 
