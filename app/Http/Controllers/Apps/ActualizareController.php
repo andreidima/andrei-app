@@ -54,7 +54,7 @@ class ActualizareController extends Controller
         // Daca se adauga din pontaj, se precompletezea id-ul aplicatiei
         $actualizare->aplicatie_id = $request->session()->get('pontajRequest.aplicatie_id', '');
 
-        $aplicatii = Aplicatie::select('id', 'nume')->get();
+        $aplicatii = Aplicatie::select('id', 'nume')->orderBy('nume')->get();
 
         $request->session()->get('actualizareReturnUrl') ?? $request->session()->put('actualizareReturnUrl', url()->previous());
 
@@ -102,7 +102,7 @@ class ActualizareController extends Controller
     {
         $request->session()->get('actualizareReturnUrl') ?? $request->session()->put('actualizareReturnUrl', url()->previous());
 
-        $aplicatii = Aplicatie::select('id', 'nume')->get();
+        $aplicatii = Aplicatie::select('id', 'nume')->orderBy('nume')->get();
 
         return view('apps.actualizari.edit', compact('actualizare', 'aplicatii'));
     }
