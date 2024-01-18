@@ -162,9 +162,9 @@ class ActualizareController extends Controller
                 'pret' => 'nullable',
                 'trimis_catre_facturare' => 'nullable',
                 'confirmare_facturare' => 'nullable',
-                'descriere' => 'nullable|max:2000',
-                'observatii_pentru_client' => 'nullable|max:2000',
-                'observatii_personale' => 'nullable|max:2000',
+                'descriere' => 'nullable|max:5000',
+                'observatii_pentru_client' => 'nullable|max:5000',
+                'observatii_personale' => 'nullable|max:5000',
             ],
             [
                 // 'tara_id.required' => 'Câmpul țara este obligatoriu'
