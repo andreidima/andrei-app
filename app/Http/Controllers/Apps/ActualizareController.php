@@ -34,7 +34,8 @@ class ActualizareController extends Controller
             ->when($searchActualizare, function ($query, $searchActualizare) {
                 $query->where('nume', 'like', '%' . $searchActualizare . '%');
             })
-            ->orderBy('ultimul_pontaj', 'desc');
+            // ->orderBy('ultimul_pontaj', 'desc');
+            ->latest();
 
         $actualizari = $query->simplePaginate(50);
 
