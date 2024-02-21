@@ -55,7 +55,7 @@
                             <tr>
                                 <td colspan="2">
                                     <table style="border: 1px solid black">
-                                        @foreach ($factura->actualizari as $actualizare)
+                                        @foreach ($factura->actualizari->sortBy('nume') as $actualizare)
                                             @if ($loop->first)
                                                 <tr>
                                                     <th class="text-center" style="border: 1px solid black">Lucrări</th>

@@ -81,7 +81,7 @@
                                     {{ $factura->actualizari->first()->aplicatie->nume ?? '' }}
                                 </td>
                                 <td class="">
-                                    @foreach ($factura->actualizari as $actualizare)
+                                    @foreach ($factura->actualizari->sortBy('nume') as $actualizare)
                                         {{ $actualizare->nume }}
                                         <br>
                                     @endforeach
