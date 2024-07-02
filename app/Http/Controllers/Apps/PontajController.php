@@ -199,7 +199,8 @@ class PontajController extends Controller
         }
     }
 
-    private function inchidePontaj (){
+    private function inchidePontaj ()
+    {
         $pontaje = Pontaj::whereNull('sfarsit')->get();
 
         if ($pontaje->count() > 1) {
@@ -214,7 +215,8 @@ class PontajController extends Controller
         return;
     }
 
-    public function inchide (){
+    public function inchide ()
+    {
         // Funcția returnează ceva doar dacă este vreo eroare.
         if ($mesaj = $this->inchidePontaj()){
             return back()->with('error', $mesaj);
@@ -222,7 +224,8 @@ class PontajController extends Controller
         return back()->with('status', 'Pontajul a fost închis cu succes!');
     }
 
-    public function deschideNou ($actualizare = null){
+    public function deschideNou ($actualizare = null)
+    {
         // Funcția returnează ceva doar dacă este vreo eroare.
         if ($mesaj = $this->inchidePontaj()){
             return back()->with('error', $mesaj);
@@ -231,5 +234,56 @@ class PontajController extends Controller
         Pontaj::create(['actualizare_id' => $actualizare, 'inceput' => Carbon::now()]);
 
         return back()->with('status', 'Pontajul a fost creat cu succes!');
+    }
+
+    public function statistica (Request $request)
+    {
+        $searchInterval = $request->searchInterval ?? Carbon::today()->startOfMonth() . ',' . Carbon::today()->endOfMonth();
+        $searchAplicatiiSelectate = $request->searchAplicatiiSelectate ?? Aplicatie::select('id')->pluck('id')->toArray();
+        // $searchAplicatiiSelectate = $request->searchAplicatiiSelectate ?? Aplicatie::select('id', 'nume')->pluck('id', 'nume')->get();
+// dd($searchAplicatiiSelectate);
+        $dataInceput = strtok($searchInterval, ',');
+        $dataSfarsit = strtok( '' );
+
+        $pontaje = Pontaj::select('inceput', 'sfarsit')
+            ->selectRaw('TIMEDIFF(sfarsit, inceput) AS timp')
+            ->when($searchInterval, function ($query, $searchInterval) {
+                return $query->whereBetween('inceput', [strtok($searchInterval, ','), strtok( '' )]);
+            })
+            ->whereHas('actualizare' , function ($query) use ($searchAplicatiiSelectate) {
+                return $query->whereHas('aplicatie', function ($query) use ($searchAplicatiiSelectate) {
+                    return $query->whereIn('id', $searchAplicatiiSelectate);
+                });
+            })
+            ->orderBy('inceput')
+            ->get();
+
+        // Make an array with „pontaje” cumulated by days
+        $pontajeCumulatPeZi = [[]];
+        foreach ($pontaje as $pontaj){
+            $ziua = substr($pontaj->inceput, 0, 10); // select just the day without time
+            if (isset($pontajeCumulatPeZi[$ziua])){ // if allreay this day is in array
+                $azi = Carbon::today()->setTimeFromTimeString($pontajeCumulatPeZi[$ziua]); // the time that it is allready in array
+                $azi->addHours(substr($pontaj->timp, 0, 2))->addMinutes(substr($pontaj->timp, 3, 2))->addSeconds(substr($pontaj->timp, 6, 2)); // the time that is allready in array + the new time
+                $pontajeCumulatPeZi[$ziua] = Carbon::parse($azi)->isoFormat('HH:mm:ss');
+            } else {
+                $pontajeCumulatPeZi[$ziua] = $pontaj->timp;
+            }
+        }
+        unset($pontajeCumulatPeZi[0]); // the 0 index is created automatically at the array creation, and need to be deleted to not be displayed in calendar
+
+        // Fill the array with missing dates, for faster parsing in view
+        $ziua = Carbon::parse($dataInceput)->startOfMonth();
+        while($ziua->lessThan(Carbon::parse($dataSfarsit)->endOfMonth())){
+            if (!isset($pontajeCumulatPeZi[$ziua->isoFormat('YYYY-MM-DD')])) {
+                $pontajeCumulatPeZi[$ziua->isoFormat('YYYY-MM-DD')] = '';
+            }
+            $ziua->addDay();
+        }
+        ksort($pontajeCumulatPeZi);
+
+        $aplicatii = Aplicatie::orderBy('nume')->get();
+
+        return view('apps.pontaje.misc.statistica', compact('pontajeCumulatPeZi', 'aplicatii', 'searchInterval', 'searchAplicatiiSelectate'));
     }
 }

@@ -52,6 +52,30 @@
                                     {{ $aplicatie->github_url }}
                                 </td>
                             </tr>
+                            <tr>
+                                <td class="pe-4">
+                                    Php version
+                                </td>
+                                <td>
+                                    {{ $aplicatie->php_version }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="pe-4">
+                                    Laravel version
+                                </td>
+                                <td>
+                                    {{ $aplicatie->laravel_version }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="pe-4">
+                                    Vue version
+                                </td>
+                                <td>
+                                    {{ $aplicatie->vue_version }}
+                                </td>
+                            </tr>
                         </table>
                     </div>
 

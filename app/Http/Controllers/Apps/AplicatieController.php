@@ -144,6 +144,12 @@ class AplicatieController extends Controller
                 'local_url' => 'nullable|max:200',
                 'online_url' => 'nullable|max:200',
                 'github_url' => 'nullable|max:200',
+                'php_version' => 'nullable|max:200',
+                'laravel_version' => 'nullable|max:200',
+                'vue_version' => 'nullable|max:200',
+                'urls' => 'nullable|max:2000',
+                'urls_info' => 'nullable|max:2000',
+                'software_tools' => 'nullable|max:2000',
             ],
             [
                 // 'tara_id.required' => 'Câmpul țara este obligatoriu'

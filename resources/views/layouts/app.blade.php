@@ -64,6 +64,12 @@
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
+                                    <a class="dropdown-item" href="/apps/pontaje/statistica">
+                                        <i class="fa-solid fa-chart-simple me-1"></i>Statistică
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
                                     <a class="dropdown-item" href="/apps/facturi">
                                         <i class="fa-solid fa-file-invoice me-1"></i>Facturi
                                     </a>

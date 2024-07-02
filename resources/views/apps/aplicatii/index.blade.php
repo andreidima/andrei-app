@@ -44,10 +44,28 @@
             <div class="table-responsive rounded">
                 <table class="table table-striped table-hover rounded">
                     <thead class="text-white rounded">
+                        {{-- <tr class="thead-danger" style="padding:2rem">
+                            <th class="text-white culoare2"></th>
+                            <th class="text-white culoare2"></th>
+                            <th colspan="3" class="text-white culoare2 text-center" style="border-left: 1px white solid; border-right: 1px white solid;">Url</th>
+                            <th colspan="3" class="text-white culoare2 text-center" style="border-right: 1px white solid;">Versions</th>
+                            <th class="text-white culoare2"></th>
+                            <th class="text-white culoare2"></th>
+                            <th class="text-white culoare2"></th>
+                        </tr> --}}
                         <tr class="thead-danger" style="padding:2rem">
                             <th class="text-white culoare2">#</th>
-                            <th class="text-white culoare2">Aplicație</th>
-                            <th class="text-white culoare2 text-end">Acțiuni</th>
+                            <th class="text-white culoare2">Aplication</th>
+                            {{-- <th class="text-white culoare2" style="border-left: 1px white solid;">Local</th>
+                            <th class="text-white culoare2">Online</th>
+                            <th class="text-white culoare2" style="border-right: 1px white solid;">Github</th>
+                            <th class="text-white culoare2">Php</th>
+                            <th class="text-white culoare2">Laravel</th>
+                            <th class="text-white culoare2" style="border-right: 1px white solid;">Vue</th> --}}
+                            <th class="text-white culoare2">Urls</th>
+                            <th class="text-white culoare2">Urls info</th>
+                            <th class="text-white culoare2">Software tools</th>
+                            <th class="text-white culoare2 text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,8 +75,57 @@
                                     {{ ($aplicatii ->currentpage()-1) * $aplicatii ->perpage() + $loop->index + 1 }}
                                 </td>
                                 <td class="">
-                                    {{ $aplicatie->nume ?? '' }}
+                                    {{ $aplicatie->nume }}
                                 </td>
+                                {{-- <td class="">
+                                    @if ( $aplicatie->local_url )
+                                        <a href="{{ $aplicatie->local_url }}" target="_blank" style="text-decoration: none">
+                                            Local</a>
+                                    @endif
+                                </td>
+                                <td class="">
+                                    @if ( $aplicatie->online_url )
+                                        <a href="{{ $aplicatie->online_url }}" target="_blank" style="text-decoration: none">
+                                            Online</a>
+                                    @endif
+                                </td>
+                                <td class="">
+                                    @if ( $aplicatie->github_url )
+                                        <a href="{{ $aplicatie->github_url }}" target="_blank" style="text-decoration: none">
+                                            Github</a>
+                                    @endif
+                                </td>
+                                <td>
+                                    {{ $aplicatie->php_version }}
+                                </td>
+                                <td>
+                                    {{ $aplicatie->laravel_version }}
+                                </td>
+                                <td>
+                                    {{ $aplicatie->vue_version }}
+                                </td> --}}
+                                <td>
+                                    @foreach (explode(',', $aplicatie->urls) as $url)
+                                        <a href="{{ $url }}" target="_blank" style="text-decoration: none">
+                                            {{ array_key_exists(1, $url = explode('//', $url)) ? $url[1] : null }}
+                                        </a>
+                                        <br>
+                                    @endforeach
+                                </td>
+                                <td>
+                                    {!! nl2br( $aplicatie->urls_info) !!}
+                                </td>
+                                <td>
+                                    @php
+                                        $software_tools = array_map('trim', explode(',', $aplicatie->software_tools)); // Trim and explode on the same time
+                                        asort($software_tools);
+                                    @endphp
+                                    @foreach ($software_tools as $tool)
+                                    {{ $tool }}
+                                    <br>
+                                    @endforeach
+                                </td>
+
                                 <td>
                                     <div class="d-flex justify-content-end">
                                         <a href="{{ $aplicatie->path() }}" class="flex me-1">

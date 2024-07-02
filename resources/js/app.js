@@ -270,4 +270,28 @@ if (document.getElementById('facturaForm') != null) {
     facturaForm.mount('#facturaForm');
 }
 
-
+// Formular factura
+const statisticaPontajAppsSelect = createApp({
+    el: '#statisticaPontajAppsSelect',
+    data() {
+        return {
+            aplicatii: ((typeof aplicatii !== 'undefined') ? aplicatii : []),
+            searchAplicatiiSelectate: ((typeof searchAplicatiiSelectate !== 'undefined') ? searchAplicatiiSelectate : []),
+        }
+    },
+    methods: {
+        select: function (event) {
+            var searchAplicatiiSelectate = [];
+            if (event.target.checked) {
+                this.aplicatii.forEach(function (aplicatie) {
+                    searchAplicatiiSelectate.push(aplicatie.id);
+                });
+            }
+            this.searchAplicatiiSelectate = searchAplicatiiSelectate;
+        },
+    }
+});
+statisticaPontajAppsSelect.component('vue-datepicker-next', VueDatepickerNext);
+if (document.getElementById('statisticaPontajAppsSelect') != null) {
+    statisticaPontajAppsSelect.mount('#statisticaPontajAppsSelect');
+}

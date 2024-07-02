@@ -35,6 +35,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/apps/pontaje/{actualizare}/deschide-nou', [PontajController::class, 'deschideNou']);
     Route::get('/apps/pontaje/inchide', [PontajController::class, 'inchide']);
     Route::any('/apps/pontaje/adauga-resursa/{resursa}', [PontajController::class, 'adaugaResursa']);
+    Route::get('/apps/pontaje/statistica', [PontajController::class, 'statistica']);
     Route::resource('/apps/pontaje', PontajController::class)->parameters(['pontaje' => 'pontaj']);
 
     Route::get('/apps/facturi/{factura}/export', [FacturaController::class, 'export']);
