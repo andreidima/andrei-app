@@ -162,7 +162,7 @@ class ActualizareController extends Controller
                 'pret' => 'nullable',
                 'trimis_catre_facturare' => 'nullable',
                 'confirmare_facturare' => 'nullable',
-                'descriere' => 'nullable|max:5000',
+                'descriere' => 'nullable',
                 'observatii_pentru_client' => 'nullable|max:5000',
                 'observatii_personale' => 'nullable|max:5000',
             ],
