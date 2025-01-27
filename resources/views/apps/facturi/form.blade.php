@@ -97,7 +97,7 @@
                     <option selected></option>
                     <option value="1" {{ ((intval(old('status_plata', $factura->status_plata))) === 1) ? 'selected' : '' }}>Paid by the client</option>
                     <option value="2" {{ ((intval(old('status_plata', $factura->status_plata))) === 2) ? 'selected' : '' }}>The client didn't want to pay</option>
-                    <option value="2" {{ ((intval(old('status_plata', $factura->status_plata))) === 3) ? 'selected' : '' }}>Awaiting client confirmation to issue the invoice</option>
+                    <option value="3" {{ ((intval(old('status_plata', $factura->status_plata))) === 3) ? 'selected' : '' }}>Awaiting client confirmation to issue the invoice</option>
                 </select>
             </div>
         </div>
