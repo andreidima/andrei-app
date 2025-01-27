@@ -54,6 +54,8 @@
                             <th class="text-white culoare2">Data</th>
                             <th class="text-white culoare2">Confirmare<br>client</th>
                             <th class="text-white culoare2">Confirmare<br>validsoftware</th>
+                            <th class="text-white culoare2">Status<br>Plată</th>
+                            <th class="text-white culoare2">Preț</th>
                             <th class="text-white culoare2">Aplicație</th>
                             <th class="text-white culoare2">Actualizări</th>
                             <th class="text-white culoare2 text-end">Acțiuni</th>
@@ -76,6 +78,24 @@
                                 </td>
                                 <td class="">
                                     {{ $factura->confirmare_validsoftware ? Carbon::parse($factura->confirmare_validsoftware)->isoFormat('DD.MM.YYYY') : '' }}
+                                </td>
+                                <td class="">
+                                    @switch($factura->status_plata)
+                                        @case(1)
+                                            Paid by the client
+                                            @break
+                                        @case(2)
+                                            The client didn't want to pay
+                                            @break
+                                        @case(2)
+                                            Awaiting client confirmation to issue the invoice
+                                            @break
+                                        @default
+
+                                    @endswitch
+                                </td>
+                                <td class="">
+                                    {{ $factura->actualizari->sum('pret') }}
                                 </td>
                                 <td class="">
                                     {{ $factura->actualizari->first()->aplicatie->nume ?? '' }}

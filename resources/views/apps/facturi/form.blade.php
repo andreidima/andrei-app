@@ -92,11 +92,12 @@
                 ></vue-datepicker-next>
             </div>
             <div class="col-lg-2 mb-4">
-                <label for="remunerare" class="mb-0 ps-3">Remunerare</label>
-                <select name="remunerare" class="form-select bg-white rounded-3 {{ $errors->has('remunerare') ? 'is-invalid' : '' }}">
+                <label for="status_plata" class="mb-0 ps-3">Status plată</label>
+                <select name="status_plata" class="form-select bg-white rounded-3 {{ $errors->has('status_plata') ? 'is-invalid' : '' }}">
                     <option selected></option>
-                    <option value="1" {{ ((intval(old('remunerare', $factura->remunerare))) === 1) ? 'selected' : '' }}>Plătită</option>
-                    <option value="2" {{ ((intval(old('remunerare', $factura->remunerare))) === 2) ? 'selected' : '' }}>Pagubă</option>
+                    <option value="1" {{ ((intval(old('status_plata', $factura->status_plata))) === 1) ? 'selected' : '' }}>Paid by the client</option>
+                    <option value="2" {{ ((intval(old('status_plata', $factura->status_plata))) === 2) ? 'selected' : '' }}>The client didn't want to pay</option>
+                    <option value="2" {{ ((intval(old('status_plata', $factura->status_plata))) === 3) ? 'selected' : '' }}>Awaiting client confirmation to issue the invoice</option>
                 </select>
             </div>
         </div>
