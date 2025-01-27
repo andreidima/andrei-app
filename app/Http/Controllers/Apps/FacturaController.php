@@ -167,7 +167,7 @@ class FacturaController extends Controller
                 'data' => 'required',
                 'actualizariAdaugateLaFactura' => 'required',
                 'confirmare_primire' => '',
-                'remunerare' => '',
+                'status_plata' => '',
                 // 'numar' => 'nullable|max:200',
                 // 'github_url' => 'nullable|max:200',
             ],
