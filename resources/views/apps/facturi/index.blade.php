@@ -87,7 +87,7 @@
                                         @case(2)
                                             The client didn't want to pay
                                             @break
-                                        @case(2)
+                                        @case(3)
                                             Awaiting client confirmation to issue the invoice
                                             @break
                                         @default
