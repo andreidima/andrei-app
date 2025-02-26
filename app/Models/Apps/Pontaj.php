@@ -14,6 +14,11 @@ class Pontaj extends Model
     protected $table = 'apps_pontaje';
     protected $guarded = [];
 
+    protected $casts = [
+        'inceput' => 'datetime',
+        'sfarsit' => 'datetime',
+    ];
+
     public function path()
     {
         return "/apps/pontaje/{$this->id}";

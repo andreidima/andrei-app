@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Apps;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
 use App\Models\Apps\Actualizare;
 use App\Models\Apps\Aplicatie;
 use Carbon\Carbon;
@@ -19,13 +18,13 @@ class ActualizareController extends Controller
      */
     public function index(Request $request)
     {
-        $request->session()->forget('actualizareReturnUrl');
+        $this->forgetSession($request, 'actualizareReturnUrl');
 
         $searchAplicatie = $request->searchAplicatie;
         $searchActualizare = $request->string('searchActualizare');
 
         $query = Actualizare::with('aplicatie', 'pontaje', 'pontajeAzi', 'pontajeAziDeschise')
-            ->select('*', DB::raw('(select inceput from apps_pontaje where actualizare_id = apps_actualizari.id order by id desc limit 1) as ultimul_pontaj')  )
+            ->select('*', DB::raw('(select inceput from apps_pontaje where actualizare_id = apps_actualizari.id order by id desc limit 1) as ultimul_pontaj'))
             ->when($searchAplicatie, function ($query, $searchAplicatie) {
                 $query->whereHas('aplicatie', function ($query) use ($searchAplicatie) {
                     $query->where('nume', 'like', '%' . $searchAplicatie . '%');
@@ -34,7 +33,6 @@ class ActualizareController extends Controller
             ->when($searchActualizare, function ($query, $searchActualizare) {
                 $query->where('nume', 'like', '%' . $searchActualizare . '%');
             })
-            // ->orderBy('ultimul_pontaj', 'desc');
             ->latest();
 
         $actualizari = $query->simplePaginate(50);
@@ -51,12 +49,12 @@ class ActualizareController extends Controller
     {
         $actualizare = new Actualizare;
 
-        // Daca se adauga din pontaj, se precompletezea id-ul aplicatiei
+        // Pre-fill application ID if adding from pontaj
         $actualizare->aplicatie_id = $request->session()->get('pontajRequest.aplicatie_id', '');
 
         $aplicatii = Aplicatie::select('id', 'nume')->orderBy('nume')->get();
 
-        $request->session()->get('actualizareReturnUrl') ?? $request->session()->put('actualizareReturnUrl', url()->previous());
+        $this->setReturnUrl($request);
 
         return view('apps.actualizari.create', compact('actualizare', 'aplicatii'));
     }
@@ -71,12 +69,12 @@ class ActualizareController extends Controller
     {
         $actualizare = Actualizare::create($this->validateRequest($request));
 
-        // Daca actualizarea a fost adaugata din formularul Pontaj, se trimite in sesiune, pentru a fi folosita in Pontaj
+        // If the update was added from the Pontaj form, store it in the session for use in Pontaj
         if ($request->session()->exists('pontajRequest')) {
-            $pontajRequest = $request->session()->put('pontajRequest.actualizare_id', $actualizare->id);
+            $request->session()->put('pontajRequest.actualizare_id', $actualizare->id);
         }
 
-        return redirect($request->session()->get('actualizareReturnUrl') ?? ('/apps/actualizari'))->with('status', 'Actualizarea „' . $actualizare->nume . '” a fost adăugată cu succes!');
+        return redirect($this->getReturnUrl($request))->with('status', 'Actualizarea „' . $actualizare->nume . '” a fost adăugată cu succes!');
     }
 
     /**
@@ -87,7 +85,7 @@ class ActualizareController extends Controller
      */
     public function show(Request $request, Actualizare $actualizare)
     {
-        $request->session()->get('actualizareReturnUrl') ?? $request->session()->put('actualizareReturnUrl', url()->previous());
+        $this->setReturnUrl($request);
 
         return view('apps.actualizari.show', compact('actualizare'));
     }
@@ -100,7 +98,7 @@ class ActualizareController extends Controller
      */
     public function edit(Request $request, Actualizare $actualizare)
     {
-        $request->session()->get('actualizareReturnUrl') ?? $request->session()->put('actualizareReturnUrl', url()->previous());
+        $this->setReturnUrl($request);
 
         $aplicatii = Aplicatie::select('id', 'nume')->orderBy('nume')->get();
 
@@ -118,7 +116,7 @@ class ActualizareController extends Controller
     {
         $actualizare->update($this->validateRequest($request));
 
-        return redirect($request->session()->get('actualizareReturnUrl') ?? ('/apps/actualizari'))->with('status', 'Actualizarea „' . $actualizare->nume . '” a fost modificată cu succes!');
+        return redirect($this->getReturnUrl($request))->with('status', 'Actualizarea „' . $actualizare->nume . '” a fost modificată cu succes!');
     }
 
     /**
@@ -146,15 +144,6 @@ class ActualizareController extends Controller
      */
     protected function validateRequest(Request $request)
     {
-        // Se adauga userul doar la adaugare, iar la modificare nu se schimba
-        // if ($request->isMethod('post')) {
-        //     $request->request->add(['user_id' => $request->user()->id]);
-        // }
-
-        // if ($request->isMethod('post')) {
-        //     $request->request->add(['cheie_unica' => uniqid()]);
-        // }
-
         return $request->validate(
             [
                 'aplicatie_id' => 'required',
@@ -165,19 +154,53 @@ class ActualizareController extends Controller
                 'descriere' => 'nullable',
                 'observatii_pentru_client' => 'nullable|max:5000',
                 'observatii_personale' => 'nullable|max:5000',
-            ],
-            [
-                // 'tara_id.required' => 'Câmpul țara este obligatoriu'
             ]
         );
     }
 
+    /**
+     * Handle axios request.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function axios(Request $request)
     {
-        $actualizari = Actualizare::where('aplicatie_id', ($request->aplicatie_id))->get();
+        $actualizari = Actualizare::where('aplicatie_id', $request->aplicatie_id)->latest()->get();
 
         return response()->json([
             'actualizari' => $actualizari,
         ]);
+    }
+
+    /**
+     * Forget a session key.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param string $key
+     */
+    protected function forgetSession(Request $request, $key)
+    {
+        $request->session()->forget($key);
+    }
+
+    /**
+     * Set the return URL in the session.
+     *
+     * @param \Illuminate\Http\Request $request
+     */
+    protected function setReturnUrl(Request $request)
+    {
+        $request->session()->get('actualizareReturnUrl') ?? $request->session()->put('actualizareReturnUrl', url()->previous());
+    }
+
+    /**
+     * Get the return URL from the session.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return string
+     */
+    protected function getReturnUrl(Request $request)
+    {
+        return $request->session()->get('actualizareReturnUrl') ?? '/apps/actualizari';
     }
 }

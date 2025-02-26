@@ -76,6 +76,16 @@
                                 </li>
                             </ul>
                         </li>
+                        <li class="nav-item me-3">
+                            <a class="nav-link rounded-3 {{ request()->routeIs('refrains.index') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('refrains.index') }}">
+                                <i class="fa-solid fa-ban me-1"></i> Refrains
+                            </a>
+                        </li>
+                        <li class="nav-item me-3">
+                            <a class="nav-link rounded-3 {{ request()->routeIs('achievements.index') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('achievements.index') }}">
+                                <i class="fa-solid fa-trophy me-1"></i> Achievements
+                            </a>
+                        </li>
                     </ul>
 
                     <!-- Right Side Of Navbar -->

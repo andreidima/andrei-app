@@ -67,11 +67,11 @@ class PontajController extends Controller
         $pontaj->fill($request->session()->pull('pontajRequest', []));
 
         $aplicatii = Aplicatie::select('id', 'nume')->orderBy('nume')->get();
-        $actualizari = Actualizare::select('id', 'nume')->orderBy('nume')->get();
+        // $actualizari = Actualizare::select('id', 'nume')->orderBy('nume')->get();
 
         $request->session()->get('pontajReturnUrl') ?? $request->session()->put('pontajReturnUrl', url()->previous());
 
-        return view('apps.pontaje.create', compact('pontaj', 'aplicatii', 'actualizari'));
+        return view('apps.pontaje.create', compact('pontaj', 'aplicatii'));
     }
 
     /**
@@ -113,11 +113,11 @@ class PontajController extends Controller
         $pontaj->fill($request->session()->pull('pontajRequest', []));
 
         $aplicatii = Aplicatie::select('id', 'nume')->orderBy('nume')->get();
-        $actualizari = Actualizare::select('id', 'nume')->orderBy('nume')->get();
+        // $actualizari = Actualizare::select('id', 'nume')->orderBy('nume')->get();
 
         $request->session()->get('pontajReturnUrl') ?? $request->session()->put('pontajReturnUrl', url()->previous());
 
-        return view('apps.pontaje.edit', compact('pontaj', 'aplicatii', 'actualizari'));
+        return view('apps.pontaje.edit', compact('pontaj', 'aplicatii'));
     }
 
     /**
@@ -241,7 +241,7 @@ class PontajController extends Controller
         $searchInterval = $request->searchInterval ?? Carbon::today()->startOfMonth() . ',' . Carbon::today()->endOfMonth();
         $searchAplicatiiSelectate = $request->searchAplicatiiSelectate ?? Aplicatie::select('id')->pluck('id')->toArray();
         // $searchAplicatiiSelectate = $request->searchAplicatiiSelectate ?? Aplicatie::select('id', 'nume')->pluck('id', 'nume')->get();
-// dd($searchAplicatiiSelectate);
+
         $dataInceput = strtok($searchInterval, ',');
         $dataSfarsit = strtok( '' );
 
