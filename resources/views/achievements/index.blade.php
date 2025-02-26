@@ -31,7 +31,7 @@
                     <span class="badge p-1 mb-1 culoare1 fs-5">
                         {{ $key }} - {{ $days = $achievement['since']->diffInDays(Carbon::now()) }} days
                         <br>
-                        Next day in:
+                        +1 day in:
                         {{ $achievement['additionalTimeNeededForNextDay'] ?? '' }}
                     </span>
                     @foreach($milestones as $milestone)
