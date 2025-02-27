@@ -66,7 +66,7 @@
             @foreach ($achievements as $key => $achievement)
                 <div class="col-md-6 mb-4 text-center">
                     <span class="badge p-1 mb-1 culoare1 fs-5">
-                        {{ $key }} - {{ $days = $achievement['since']->diffInDays(Carbon::parse($searchData)) }} days
+                        {{ $key }} - {{ $days = $achievement['since']->diffInDays(Carbon::parse($searchData), false) }} days
                         <br>
                         +1 day in:
                         {{ $achievement['additionalTimeNeededForNextDay'] ?? '' }}
@@ -74,7 +74,11 @@
                     @foreach($milestones as $milestone)
                         @php
                             // Calculate progress percentage (max 100%)
-                            $progress = min(100, ($days / $milestone['days']) * 100);
+                            if ($days > 0) {
+                                $progress = min(100, ($days / $milestone['days']) * 100);
+                            } else {
+                                $progress = 0;
+                            }
                         @endphp
 
                         <!-- Progress Bar -->

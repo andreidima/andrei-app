@@ -55,15 +55,21 @@ class AchievementController extends Controller
      */
     private function getContinuousWorkData($untilDate)
     {
-        $pontaje = Pontaj::select('inceput', 'sfarsit')->latest()->get();
-        $dailyDurations = [];
-
         // Define the starting date and today's date
-        $startDate = Carbon::parse('2025-01-01');
+        $startDate = Carbon::parse('2024-01-01');
         $endDate = Carbon::parse($untilDate);
+
+        $pontaje = Pontaj::select('inceput', 'sfarsit')
+            ->whereDate('inceput', '>=', $startDate)
+            ->whereDate('sfarsit', '<=', $endDate)
+            ->latest()
+            // ->take(10)
+            ->get();
+        $dailyDurations = [];
 
         // Initialize daily durations array
         for ($date = $endDate->copy(); $date->gte($startDate); $date->subDay()) {
+
             $dailyDurations[$date->format('Y-m-d')] = 0;
         }
 
@@ -88,9 +94,10 @@ class AchievementController extends Controller
 
             if ($totalDuration >= $requiredSeconds) {
                 $extraTime = $totalDuration - $requiredSeconds;
+
             } else {
                 return [
-                    'continuousWorkSince' => $date->copy()->addDay(),
+                    'continuousWorkSince' => $date->copy(),
                     'additionalTimeNeededForNextDay' => CarbonInterval::seconds(abs($requiredSeconds - $totalDuration))->cascade()->forHumans()
                 ];
             }
