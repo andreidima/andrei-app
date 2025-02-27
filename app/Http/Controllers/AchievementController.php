@@ -16,6 +16,12 @@ class AchievementController extends Controller
 
     public function index (Request $request)
     {
+        $request->session()->forget('returnUrl');
+
+        $searchData = $request->searchData ? trim($request->searchData) : Carbon::today()->toDateString();
+        $request->action === 'previousDay' ? $searchData = Carbon::parse($searchData)->subDay()->toDateString() : null;
+        $request->action === 'nextDay' ? $searchData = Carbon::parse($searchData)->addDay()->toDateString() : null;
+
         // Calculate days of continuous work of 7 hours per day in weekdays and 3.5 hours per day in weekends
         $continuousWorkData = $this->getContinuousWorkData();
         $achievements['Continuous work']['since'] = $continuousWorkData['continuousWorkSince'];
@@ -41,7 +47,7 @@ class AchievementController extends Controller
             ['name' => '1000 Days of Mastery', 'days' => 1000],
         ];
 
-        return view('achievements.index', compact('achievements', 'milestones'));
+        return view('achievements.index', compact('achievements', 'milestones', 'searchData'));
     }
 
     /**
