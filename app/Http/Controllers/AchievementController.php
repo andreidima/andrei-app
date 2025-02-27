@@ -23,7 +23,7 @@ class AchievementController extends Controller
         $request->action === 'nextDay' ? $searchData = Carbon::parse($searchData)->addDay()->toDateString() : null;
 
         // Calculate days of continuous work of 7 hours per day in weekdays and 3.5 hours per day in weekends
-        $continuousWorkData = $this->getContinuousWorkData();
+        $continuousWorkData = $this->getContinuousWorkData($searchData);
         $achievements['Continuous work']['since'] = $continuousWorkData['continuousWorkSince'];
         $achievements['Continuous work']['additionalTimeNeededForNextDay'] = $continuousWorkData['additionalTimeNeededForNextDay'];
 
@@ -53,14 +53,14 @@ class AchievementController extends Controller
     /**
      * Get the continuous work days
      */
-    private function getContinuousWorkData()
+    private function getContinuousWorkData($untilDate)
     {
         $pontaje = Pontaj::select('inceput', 'sfarsit')->latest()->get();
         $dailyDurations = [];
 
         // Define the starting date and today's date
         $startDate = Carbon::parse('2025-01-01');
-        $endDate = Carbon::today();
+        $endDate = Carbon::parse($untilDate);
 
         // Initialize daily durations array
         for ($date = $endDate->copy(); $date->gte($startDate); $date->subDay()) {
