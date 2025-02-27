@@ -66,7 +66,7 @@
             @foreach ($achievements as $key => $achievement)
                 <div class="col-md-6 mb-4 text-center">
                     <span class="badge p-1 mb-1 culoare1 fs-5">
-                        {{ $key }} - {{ $days = $achievement['since']->diffInDays(Carbon::now()) }} days
+                        {{ $key }} - {{ $days = $achievement['since']->diffInDays(Carbon::parse($searchData)) }} days
                         <br>
                         +1 day in:
                         {{ $achievement['additionalTimeNeededForNextDay'] ?? '' }}
