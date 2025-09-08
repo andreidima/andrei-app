@@ -150,10 +150,10 @@ class AplicatieController extends Controller
                 'urls' => 'nullable|max:2000',
                 'urls_info' => 'nullable|max:2000',
                 'software_tools' => 'nullable|max:2000',
+                'cronjobs' => 'nullable|max:2000',
+                'details' => 'nullable|max:2000',
+                'observations' => 'nullable|max:2000',
             ],
-            [
-                // 'tara_id.required' => 'Câmpul țara este obligatoriu'
-            ]
         );
     }
 }

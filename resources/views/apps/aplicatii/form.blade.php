@@ -76,13 +76,29 @@
                     name="urls_info" rows="3"
                     >{{ $aplicatie->urls_info }}</textarea>
             </div>
-        </div>
-        <div class="row mb-0">
             <div class="col-lg-6 mb-4">
                 <label for="software_tools" class="mb-0 ps-3">Software tools</label>
                 <textarea class="form-control bg-white {{ $errors->has('software_tools') ? 'is-invalid' : '' }}"
                     name="software_tools" rows="3"
                     >{{ $aplicatie->software_tools }}</textarea>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <label for="cronjobs" class="mb-0 ps-3">Cronjobs</label>
+                <textarea class="form-control bg-white {{ $errors->has('cronjobs') ? 'is-invalid' : '' }}"
+                    name="cronjobs" rows="3"
+                    >{{ $aplicatie->cronjobs }}</textarea>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <label for="details" class="mb-0 ps-3">Details</label>
+                <textarea class="form-control bg-white {{ $errors->has('details') ? 'is-invalid' : '' }}"
+                    name="details" rows="3"
+                    >{{ $aplicatie->details }}</textarea>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <label for="observations" class="mb-0 ps-3">Observations</label>
+                <textarea class="form-control bg-white {{ $errors->has('observations') ? 'is-invalid' : '' }}"
+                    name="observations" rows="3"
+                    >{{ $aplicatie->observations }}</textarea>
             </div>
         </div>
     </div>
