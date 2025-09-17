@@ -68,6 +68,11 @@
                                         <i class="fa-solid fa-chart-simple me-1"></i>Statistică
                                     </a>
                                 </li>
+                                <li>
+                                    <a class="dropdown-item" href="/apps/pontaje/statistica-grafice">
+                                        <i class="fa-solid fa-chart-column me-1"></i>Statistică - grafice
+                                    </a>
+                                </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item" href="/apps/facturi">
