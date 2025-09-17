@@ -9,7 +9,6 @@ use App\Models\Apps\Pontaj;
 use App\Models\Apps\Actualizare;
 use App\Models\Apps\Aplicatie;
 use Carbon\Carbon;
-use Carbon\CarbonInterval;
 
 class PontajController extends Controller
 {
@@ -239,45 +238,19 @@ class PontajController extends Controller
 
     public function statistica (Request $request)
     {
-        $data = $this->getStatisticaData($request);
-
-        return view('apps.pontaje.misc.statistica', [
-            'pontajeCumulatPeZi' => $data['pontajeCumulatPeZi'],
-            'aplicatii' => $data['aplicatii'],
-            'searchInterval' => $data['searchInterval'],
-            'searchAplicatiiSelectate' => $data['searchAplicatiiSelectate'],
-        ]);
-    }
-
-    public function statisticaGrafice(Request $request)
-    {
-        $data = $this->getStatisticaData($request);
-
-        return view('apps.pontaje.misc.statistica-charts', $data);
-    }
-
-    private function getStatisticaData(Request $request): array
-    {
         $searchInterval = $request->searchInterval ?? Carbon::today()->startOfMonth() . ',' . Carbon::today()->endOfMonth();
         $searchAplicatiiSelectate = $request->searchAplicatiiSelectate ?? Aplicatie::select('id')->pluck('id')->toArray();
         // $searchAplicatiiSelectate = $request->searchAplicatiiSelectate ?? Aplicatie::select('id', 'nume')->pluck('id', 'nume')->get();
 
-        [$dataInceput, $dataSfarsit] = array_pad(explode(',', $searchInterval), 2, null);
-        $dataInceput = trim($dataInceput);
-        $dataSfarsit = trim($dataSfarsit);
-        $startDate = $dataInceput ? Carbon::parse($dataInceput) : Carbon::today();
-        $endDate = $dataSfarsit ? Carbon::parse($dataSfarsit) : Carbon::today();
+        $dataInceput = strtok($searchInterval, ',');
+        $dataSfarsit = strtok( '' );
 
         $pontaje = Pontaj::select('inceput', 'sfarsit')
             ->selectRaw('TIMEDIFF(sfarsit, inceput) AS timp')
-            ->when($searchInterval, function ($query) use ($startDate, $endDate) {
-                if ($startDate && $endDate) {
-                    return $query->whereBetween('inceput', [$startDate->toDateTimeString(), $endDate->toDateTimeString()]);
-                }
-
-                return $query;
+            ->when($searchInterval, function ($query, $searchInterval) {
+                return $query->whereBetween('inceput', [strtok($searchInterval, ','), strtok( '' )]);
             })
-            ->whereHas('actualizare', function ($query) use ($searchAplicatiiSelectate) {
+            ->whereHas('actualizare' , function ($query) use ($searchAplicatiiSelectate) {
                 return $query->whereHas('aplicatie', function ($query) use ($searchAplicatiiSelectate) {
                     return $query->whereIn('id', $searchAplicatiiSelectate);
                 });
@@ -287,11 +260,11 @@ class PontajController extends Controller
 
         // Make an array with „pontaje” cumulated by days
         $pontajeCumulatPeZi = [[]];
-        foreach ($pontaje as $pontaj) {
+        foreach ($pontaje as $pontaj){
             $ziua = substr($pontaj->inceput, 0, 10); // select just the day without time
-            if (isset($pontajeCumulatPeZi[$ziua])) { // if already this day is in array
-                $azi = Carbon::today()->setTimeFromTimeString($pontajeCumulatPeZi[$ziua]); // the time that it is already in array
-                $azi->addHours(substr($pontaj->timp, 0, 2))->addMinutes(substr($pontaj->timp, 3, 2))->addSeconds(substr($pontaj->timp, 6, 2)); // the time that is already in array + the new time
+            if (isset($pontajeCumulatPeZi[$ziua])){ // if allreay this day is in array
+                $azi = Carbon::today()->setTimeFromTimeString($pontajeCumulatPeZi[$ziua]); // the time that it is allready in array
+                $azi->addHours(substr($pontaj->timp, 0, 2))->addMinutes(substr($pontaj->timp, 3, 2))->addSeconds(substr($pontaj->timp, 6, 2)); // the time that is allready in array + the new time
                 $pontajeCumulatPeZi[$ziua] = Carbon::parse($azi)->isoFormat('HH:mm:ss');
             } else {
                 $pontajeCumulatPeZi[$ziua] = $pontaj->timp;
@@ -300,9 +273,8 @@ class PontajController extends Controller
         unset($pontajeCumulatPeZi[0]); // the 0 index is created automatically at the array creation, and need to be deleted to not be displayed in calendar
 
         // Fill the array with missing dates, for faster parsing in view
-        $ziua = $startDate->copy()->startOfMonth();
-        $endOfInterval = $endDate->copy()->endOfMonth();
-        while ($ziua->lessThanOrEqualTo($endOfInterval)) {
+        $ziua = Carbon::parse($dataInceput)->startOfMonth();
+        while($ziua->lessThan(Carbon::parse($dataSfarsit)->endOfMonth())){
             if (!isset($pontajeCumulatPeZi[$ziua->isoFormat('YYYY-MM-DD')])) {
                 $pontajeCumulatPeZi[$ziua->isoFormat('YYYY-MM-DD')] = '';
             }
@@ -312,24 +284,6 @@ class PontajController extends Controller
 
         $aplicatii = Aplicatie::orderBy('nume')->get();
 
-        $chartPoints = [];
-        $cumulativeTotal = 0;
-        foreach ($pontajeCumulatPeZi as $ziua => $timp) {
-            $oreZi = 0.0;
-            if (!empty($timp)) {
-                $interval = CarbonInterval::createFromFormat('H:i:s', $timp);
-                $oreZi = round($interval->totalSeconds / 3600, 2);
-            }
-            $cumulativeTotal += $oreZi;
-
-            $chartPoints[] = [
-                'date' => $ziua,
-                'label' => Carbon::parse($ziua)->isoFormat('DD MMM'),
-                'hours' => $oreZi,
-                'cumulative_hours' => round($cumulativeTotal, 2),
-            ];
-        }
-
-        return compact('pontajeCumulatPeZi', 'aplicatii', 'searchInterval', 'searchAplicatiiSelectate', 'chartPoints');
+        return view('apps.pontaje.misc.statistica', compact('pontajeCumulatPeZi', 'aplicatii', 'searchInterval', 'searchAplicatiiSelectate'));
     }
 }
