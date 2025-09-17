@@ -54,8 +54,6 @@ Route::group(['middleware' => 'auth'], function () {
             ->name('pontaje.adauga_resursa');
         Route::get('pontaje/statistica', [PontajController::class, 'statistica'])
             ->name('pontaje.statistica');
-        Route::get('pontaje/statistica-grafice', [PontajController::class, 'statisticaGrafice'])
-            ->name('pontaje.statistica_grafice');
         Route::resource('pontaje', PontajController::class)
             ->parameters(['pontaje' => 'pontaj']);
 
