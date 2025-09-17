@@ -9,7 +9,6 @@ use App\Models\Apps\Pontaj;
 use App\Models\Apps\Actualizare;
 use App\Models\Apps\Aplicatie;
 use Carbon\Carbon;
-use Carbon\CarbonInterval;
 
 class PontajController extends Controller
 {
@@ -239,45 +238,19 @@ class PontajController extends Controller
 
     public function statistica (Request $request)
     {
-        $data = $this->getStatisticaData($request);
-
-        return view('apps.pontaje.misc.statistica', [
-            'pontajeCumulatPeZi' => $data['pontajeCumulatPeZi'],
-            'aplicatii' => $data['aplicatii'],
-            'searchInterval' => $data['searchInterval'],
-            'searchAplicatiiSelectate' => $data['searchAplicatiiSelectate'],
-        ]);
-    }
-
-    public function statisticaGrafice(Request $request)
-    {
-        $data = $this->getStatisticaData($request);
-
-        return view('apps.pontaje.misc.statistica-charts', $data);
-    }
-
-    private function getStatisticaData(Request $request): array
-    {
         $searchInterval = $request->searchInterval ?? Carbon::today()->startOfMonth() . ',' . Carbon::today()->endOfMonth();
         $searchAplicatiiSelectate = $request->searchAplicatiiSelectate ?? Aplicatie::select('id')->pluck('id')->toArray();
         // $searchAplicatiiSelectate = $request->searchAplicatiiSelectate ?? Aplicatie::select('id', 'nume')->pluck('id', 'nume')->get();
 
-        [$dataInceput, $dataSfarsit] = array_pad(explode(',', $searchInterval), 2, null);
-        $dataInceput = trim($dataInceput);
-        $dataSfarsit = trim($dataSfarsit);
-        $startDate = $dataInceput ? Carbon::parse($dataInceput) : Carbon::today();
-        $endDate = $dataSfarsit ? Carbon::parse($dataSfarsit) : Carbon::today();
+        $dataInceput = strtok($searchInterval, ',');
+        $dataSfarsit = strtok( '' );
 
         $pontaje = Pontaj::select('inceput', 'sfarsit')
             ->selectRaw('TIMEDIFF(sfarsit, inceput) AS timp')
-            ->when($searchInterval, function ($query) use ($startDate, $endDate) {
-                if ($startDate && $endDate) {
-                    return $query->whereBetween('inceput', [$startDate->toDateTimeString(), $endDate->toDateTimeString()]);
-                }
-
-                return $query;
+            ->when($searchInterval, function ($query, $searchInterval) {
+                return $query->whereBetween('inceput', [strtok($searchInterval, ','), strtok( '' )]);
             })
-            ->whereHas('actualizare', function ($query) use ($searchAplicatiiSelectate) {
+            ->whereHas('actualizare' , function ($query) use ($searchAplicatiiSelectate) {
                 return $query->whereHas('aplicatie', function ($query) use ($searchAplicatiiSelectate) {
                     return $query->whereIn('id', $searchAplicatiiSelectate);
                 });
@@ -287,11 +260,11 @@ class PontajController extends Controller
 
         // Make an array with „pontaje” cumulated by days
         $pontajeCumulatPeZi = [[]];
-        foreach ($pontaje as $pontaj) {
+        foreach ($pontaje as $pontaj){
             $ziua = substr($pontaj->inceput, 0, 10); // select just the day without time
-            if (isset($pontajeCumulatPeZi[$ziua])) { // if already this day is in array
-                $azi = Carbon::today()->setTimeFromTimeString($pontajeCumulatPeZi[$ziua]); // the time that it is already in array
-                $azi->addHours(substr($pontaj->timp, 0, 2))->addMinutes(substr($pontaj->timp, 3, 2))->addSeconds(substr($pontaj->timp, 6, 2)); // the time that is already in array + the new time
+            if (isset($pontajeCumulatPeZi[$ziua])){ // if allreay this day is in array
+                $azi = Carbon::today()->setTimeFromTimeString($pontajeCumulatPeZi[$ziua]); // the time that it is allready in array
+                $azi->addHours(substr($pontaj->timp, 0, 2))->addMinutes(substr($pontaj->timp, 3, 2))->addSeconds(substr($pontaj->timp, 6, 2)); // the time that is allready in array + the new time
                 $pontajeCumulatPeZi[$ziua] = Carbon::parse($azi)->isoFormat('HH:mm:ss');
             } else {
                 $pontajeCumulatPeZi[$ziua] = $pontaj->timp;
@@ -300,9 +273,8 @@ class PontajController extends Controller
         unset($pontajeCumulatPeZi[0]); // the 0 index is created automatically at the array creation, and need to be deleted to not be displayed in calendar
 
         // Fill the array with missing dates, for faster parsing in view
-        $ziua = $startDate->copy()->startOfMonth();
-        $endOfInterval = $endDate->copy()->endOfMonth();
-        while ($ziua->lessThanOrEqualTo($endOfInterval)) {
+        $ziua = Carbon::parse($dataInceput)->startOfMonth();
+        while($ziua->lessThan(Carbon::parse($dataSfarsit)->endOfMonth())){
             if (!isset($pontajeCumulatPeZi[$ziua->isoFormat('YYYY-MM-DD')])) {
                 $pontajeCumulatPeZi[$ziua->isoFormat('YYYY-MM-DD')] = '';
             }
@@ -312,311 +284,6 @@ class PontajController extends Controller
 
         $aplicatii = Aplicatie::orderBy('nume')->get();
 
-        $dailySeconds = [];
-        foreach ($pontajeCumulatPeZi as $ziua => $timp) {
-            $dailySeconds[$ziua] = 0;
-
-            if (!empty($timp)) {
-                $interval = CarbonInterval::createFromFormat('H:i:s', $timp);
-                $dailySeconds[$ziua] = (int) $interval->totalSeconds;
-            }
-        }
-
-        $chartPoints = [];
-        $cumulativeTotal = 0;
-        foreach ($dailySeconds as $ziua => $seconds) {
-            $oreZi = $seconds / 3600;
-            $cumulativeTotal += $oreZi;
-
-            $chartPoints[] = [
-                'date' => $ziua,
-                'label' => Carbon::parse($ziua)->isoFormat('DD MMM'),
-                'hours' => round($oreZi, 2),
-                'hours_seconds' => $seconds,
-                'hours_formatted' => $this->formatSecondsAsHoursMinutes($seconds),
-                'cumulative_hours' => round($cumulativeTotal, 2),
-            ];
-        }
-
-        $goalProgress = $this->buildGoalProgress($dailySeconds, $startDate, $endDate);
-
-        return compact(
-            'pontajeCumulatPeZi',
-            'aplicatii',
-            'searchInterval',
-            'searchAplicatiiSelectate',
-            'chartPoints',
-            'goalProgress'
-        );
-    }
-
-    private function buildGoalProgress(array $dailySeconds, Carbon $startDate, Carbon $endDate): array
-    {
-        $weeklyGoalSeconds = 40 * 3600;
-        $monthlyGoalSeconds = 160 * 3600;
-
-        $weeklyTotals = [];
-        $monthlyTotals = [];
-
-        foreach ($dailySeconds as $date => $seconds) {
-            $currentDate = Carbon::parse($date);
-
-            $weekKey = $currentDate->isoFormat('GGGG-[W]WW');
-            if (! isset($weeklyTotals[$weekKey])) {
-                $weeklyTotals[$weekKey] = [
-                    'seconds' => 0,
-                    'start' => $currentDate->copy()->startOfWeek(Carbon::MONDAY),
-                    'end' => $currentDate->copy()->endOfWeek(Carbon::SUNDAY),
-                ];
-            }
-            $weeklyTotals[$weekKey]['seconds'] += $seconds;
-
-            $monthKey = $currentDate->format('Y-m');
-            if (! isset($monthlyTotals[$monthKey])) {
-                $monthlyTotals[$monthKey] = [
-                    'seconds' => 0,
-                    'start' => $currentDate->copy()->startOfMonth(),
-                    'end' => $currentDate->copy()->endOfMonth(),
-                ];
-            }
-            $monthlyTotals[$monthKey]['seconds'] += $seconds;
-        }
-
-        $referenceWeek = $endDate->copy();
-        $referenceWeekKey = $referenceWeek->isoFormat('GGGG-[W]WW');
-        if (! isset($weeklyTotals[$referenceWeekKey])) {
-            $weeklyTotals[$referenceWeekKey] = [
-                'seconds' => 0,
-                'start' => $referenceWeek->copy()->startOfWeek(Carbon::MONDAY),
-                'end' => $referenceWeek->copy()->endOfWeek(Carbon::SUNDAY),
-            ];
-        }
-
-        $referenceMonthKey = $endDate->format('Y-m');
-        if (! isset($monthlyTotals[$referenceMonthKey])) {
-            $monthlyTotals[$referenceMonthKey] = [
-                'seconds' => 0,
-                'start' => $endDate->copy()->startOfMonth(),
-                'end' => $endDate->copy()->endOfMonth(),
-            ];
-        }
-
-        $weeklyBucket = $weeklyTotals[$referenceWeekKey];
-        $weeklySeconds = $weeklyBucket['seconds'];
-        /** @var Carbon $weeklyStart */
-        $weeklyStart = $weeklyBucket['start'];
-        /** @var Carbon $weeklyEnd */
-        $weeklyEnd = $weeklyBucket['end'];
-
-        $weeklyDisplayStart = $weeklyStart->copy();
-        if ($weeklyDisplayStart->lessThan($startDate)) {
-            $weeklyDisplayStart = $startDate->copy();
-        }
-        $weeklyDisplayEnd = $weeklyEnd->copy();
-        if ($weeklyDisplayEnd->greaterThan($endDate)) {
-            $weeklyDisplayEnd = $endDate->copy();
-        }
-
-        $weeklyRange = sprintf(
-            '%s – %s',
-            $weeklyDisplayStart->isoFormat('DD MMM'),
-            $weeklyDisplayEnd->isoFormat('DD MMM')
-        );
-
-        $weeklyStatus = $weeklySeconds >= $weeklyGoalSeconds
-            ? 'Ținta săptămânală a fost depășită — excelent!'
-            : 'Mai ai ' . $this->formatSecondsAsHoursMinutes($weeklyGoalSeconds - $weeklySeconds) . ' până la țintă.';
-
-        $weeklyPercentage = $weeklyGoalSeconds > 0
-            ? round(($weeklySeconds / $weeklyGoalSeconds) * 100, 1)
-            : 0;
-
-        $monthlyBucket = $monthlyTotals[$referenceMonthKey];
-        $monthlySeconds = $monthlyBucket['seconds'];
-        /** @var Carbon $monthlyStart */
-        $monthlyStart = $monthlyBucket['start'];
-        /** @var Carbon $monthlyEnd */
-        $monthlyEnd = $monthlyBucket['end'];
-
-        $monthlyDisplayStart = $monthlyStart->copy();
-        if ($monthlyDisplayStart->lessThan($startDate)) {
-            $monthlyDisplayStart = $startDate->copy();
-        }
-        $monthlyDisplayEnd = $monthlyEnd->copy();
-        if ($monthlyDisplayEnd->greaterThan($endDate)) {
-            $monthlyDisplayEnd = $endDate->copy();
-        }
-
-        $monthlyRange = sprintf(
-            '%s – %s',
-            $monthlyDisplayStart->isoFormat('DD MMM'),
-            $monthlyDisplayEnd->isoFormat('DD MMM')
-        );
-
-        $monthlyStatus = $monthlySeconds >= $monthlyGoalSeconds
-            ? 'Ținta lunară este bifată — păstrează ritmul!'
-            : 'Îți mai lipsesc ' . $this->formatSecondsAsHoursMinutes($monthlyGoalSeconds - $monthlySeconds) . ' pentru ținta lunară.';
-
-        $monthlyPercentage = $monthlyGoalSeconds > 0
-            ? round(($monthlySeconds / $monthlyGoalSeconds) * 100, 1)
-            : 0;
-
-        $bestWeek = $this->summarizeBestBucket($weeklyTotals, 'weekly');
-        $bestMonth = $this->summarizeBestBucket($monthlyTotals, 'monthly');
-
-        [$currentStreak, $longestStreak] = $this->calculateStreaks($dailySeconds, $startDate, $endDate);
-
-        return [
-            'weekly' => [
-                'seconds' => $weeklySeconds,
-                'goal_seconds' => $weeklyGoalSeconds,
-                'hours_formatted' => $this->formatSecondsAsHoursMinutes($weeklySeconds),
-                'goal_formatted' => $this->formatSecondsAsHoursMinutes($weeklyGoalSeconds),
-                'period_label' => sprintf('Săptămâna %02d', $weeklyStart->isoWeek()),
-                'range' => $weeklyRange,
-                'status' => $weeklyStatus,
-                'achieved' => $weeklySeconds >= $weeklyGoalSeconds,
-                'percentage' => $weeklyPercentage,
-                'overage_seconds' => max(0, $weeklySeconds - $weeklyGoalSeconds),
-                'remaining_seconds' => max(0, $weeklyGoalSeconds - $weeklySeconds),
-                'overage_formatted' => $weeklySeconds > $weeklyGoalSeconds
-                    ? $this->formatSecondsAsHoursMinutes($weeklySeconds - $weeklyGoalSeconds)
-                    : null,
-                'remaining_formatted' => $weeklySeconds < $weeklyGoalSeconds
-                    ? $this->formatSecondsAsHoursMinutes($weeklyGoalSeconds - $weeklySeconds)
-                    : '0:00',
-                'level' => $this->goalLevelLabel($weeklyPercentage, 'weekly'),
-            ],
-            'monthly' => [
-                'seconds' => $monthlySeconds,
-                'goal_seconds' => $monthlyGoalSeconds,
-                'hours_formatted' => $this->formatSecondsAsHoursMinutes($monthlySeconds),
-                'goal_formatted' => $this->formatSecondsAsHoursMinutes($monthlyGoalSeconds),
-                'period_label' => $monthlyStart->isoFormat('MMMM YYYY'),
-                'range' => $monthlyRange,
-                'status' => $monthlyStatus,
-                'achieved' => $monthlySeconds >= $monthlyGoalSeconds,
-                'percentage' => $monthlyPercentage,
-                'overage_seconds' => max(0, $monthlySeconds - $monthlyGoalSeconds),
-                'remaining_seconds' => max(0, $monthlyGoalSeconds - $monthlySeconds),
-                'overage_formatted' => $monthlySeconds > $monthlyGoalSeconds
-                    ? $this->formatSecondsAsHoursMinutes($monthlySeconds - $monthlyGoalSeconds)
-                    : null,
-                'remaining_formatted' => $monthlySeconds < $monthlyGoalSeconds
-                    ? $this->formatSecondsAsHoursMinutes($monthlyGoalSeconds - $monthlySeconds)
-                    : '0:00',
-                'level' => $this->goalLevelLabel($monthlyPercentage, 'monthly'),
-            ],
-            'records' => [
-                'best_week' => $bestWeek,
-                'best_month' => $bestMonth,
-            ],
-            'streaks' => [
-                'current_days' => $currentStreak,
-                'longest_days' => $longestStreak,
-            ],
-        ];
-    }
-
-    private function summarizeBestBucket(array $buckets, string $scope): ?array
-    {
-        if (empty($buckets)) {
-            return null;
-        }
-
-        $best = null;
-        foreach ($buckets as $bucket) {
-            if ($best === null || $bucket['seconds'] > $best['seconds']) {
-                $best = $bucket;
-            }
-        }
-
-        if (! $best) {
-            return null;
-        }
-
-        /** @var Carbon $start */
-        $start = $best['start'];
-        /** @var Carbon $end */
-        $end = $best['end'];
-
-        $label = $scope === 'weekly'
-            ? sprintf('Săptămâna %02d', $start->isoWeek())
-            : $start->isoFormat('MMMM YYYY');
-
-        return [
-            'label' => $label,
-            'range' => sprintf('%s – %s', $start->isoFormat('DD MMM'), $end->isoFormat('DD MMM')),
-            'hours_formatted' => $this->formatSecondsAsHoursMinutes($best['seconds']),
-        ];
-    }
-
-    private function calculateStreaks(array $dailySeconds, Carbon $startDate, Carbon $endDate): array
-    {
-        $dates = array_keys($dailySeconds);
-        sort($dates);
-
-        $longestStreak = 0;
-        $sequence = 0;
-        $previousDate = null;
-
-        foreach ($dates as $dateString) {
-            $seconds = $dailySeconds[$dateString];
-            $date = Carbon::parse($dateString);
-
-            if ($seconds > 0) {
-                if ($previousDate && $date->diffInDays($previousDate) === 1) {
-                    $sequence++;
-                } else {
-                    $sequence = 1;
-                }
-
-                $longestStreak = max($longestStreak, $sequence);
-            } else {
-                $sequence = 0;
-            }
-
-            $previousDate = $date;
-        }
-
-        $currentStreak = 0;
-        $cursor = $endDate->copy();
-        while ($cursor->greaterThanOrEqualTo($startDate)) {
-            $key = $cursor->isoFormat('YYYY-MM-DD');
-            if (($dailySeconds[$key] ?? 0) > 0) {
-                $currentStreak++;
-                $cursor->subDay();
-            } else {
-                break;
-            }
-        }
-
-        return [$currentStreak, $longestStreak];
-    }
-
-    private function formatSecondsAsHoursMinutes(int $seconds): string
-    {
-        if ($seconds <= 0) {
-            return '0:00';
-        }
-
-        $hours = intdiv($seconds, 3600);
-        $minutes = intdiv($seconds % 3600, 60);
-
-        return sprintf('%d:%02d', $hours, $minutes);
-    }
-
-    private function goalLevelLabel(float $percentage, string $scope): string
-    {
-        $noun = $scope === 'monthly' ? 'lunii' : 'săptămânii';
-
-        return match (true) {
-            $percentage >= 150 => 'Legendă a productivității',
-            $percentage >= 100 => 'Campion al ' . $noun,
-            $percentage >= 75 => 'Pe val',
-            $percentage >= 50 => 'Încălzire serioasă',
-            $percentage > 0 => 'Primii pași',
-            default => 'Provocarea te așteaptă',
-        };
+        return view('apps.pontaje.misc.statistica', compact('pontajeCumulatPeZi', 'aplicatii', 'searchInterval', 'searchAplicatiiSelectate'));
     }
 }
