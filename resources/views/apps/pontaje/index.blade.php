@@ -15,13 +15,34 @@
             <div class="col-lg-6">
                 <form class="needs-validation" novalidate method="GET" action="{{ url()->current()  }}">
                     @csrf
+                    @php
+                        $pontajeSearchConfig = [
+                            'mode' => 'linked',
+                            'aplicatieInputName' => 'searchAplicatie',
+                            'actualizareInputName' => 'searchActualizare',
+                            'actualizareIdInputName' => 'searchActualizareId',
+                            'initialAplicatie' => $searchAplicatie,
+                            'initialActualizare' => $searchActualizare,
+                            'initialActualizareId' => $searchActualizareId,
+                            'aplicatii' => $aplicatiiOptions,
+                            'actualizari' => $actualizareOptions,
+                            'placeholders' => [
+                                'aplicatie' => 'Aplicație',
+                                'actualizare' => 'Actualizare',
+                            ],
+                            'columnClasses' => [
+                                'aplicatie' => 'col-12 col-lg-6',
+                                'actualizare' => 'col-12 col-lg-6',
+                            ],
+                        ];
+                    @endphp
+
                     <div class="row mb-1 custom-search-form justify-content-center">
-                        <div class="col-lg-4">
-                            <input type="text" class="form-control rounded-3" id="searchAplicatie" name="searchAplicatie" placeholder="Aplicație" value="{{ $searchAplicatie }}">
-                        </div>
-                        <div class="col-lg-4">
-                            <input type="hidden" class="form-control rounded-3" id="searchActualizareId" name="searchActualizareId" placeholder="Actualizare" value="{{ $searchActualizareId }}">
-                            <input type="text" class="form-control rounded-3" id="searchActualizare" name="searchActualizare" placeholder="Actualizare" value="{{ $searchActualizare }}">
+                        <div class="col-lg-8">
+                            <div
+                                data-linked-autocomplete
+                                data-config='@json($pontajeSearchConfig)'
+                            ></div>
                         </div>
                         <div class="col-lg-4 d-flex align-items-center" id="datePicker">
                             Data:&nbsp;

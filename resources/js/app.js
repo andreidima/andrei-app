@@ -9,7 +9,7 @@ import './bootstrap';
 import '../sass/app.scss'
 import '../css/andrei.css'
 
-import { createApp } from 'vue';
+import { createApp, h } from 'vue';
 
 /**
  * Next, we will create a fresh Vue application instance. You may then begin
@@ -43,6 +43,7 @@ import { createApp } from 'vue';
 
 import VueDatepickerNext from './components/DatePicker.vue';
 import VueTinyMCE from './components/TinyMCE.vue';
+import LinkedAutocomplete from './components/LinkedAutocomplete.vue';
 
 
 // Click outside directive
@@ -295,3 +296,20 @@ statisticaPontajAppsSelect.component('vue-datepicker-next', VueDatepickerNext);
 if (document.getElementById('statisticaPontajAppsSelect') != null) {
     statisticaPontajAppsSelect.mount('#statisticaPontajAppsSelect');
 }
+
+
+document.querySelectorAll('[data-linked-autocomplete]').forEach((element) => {
+    let config = {};
+    const raw = element.getAttribute('data-config');
+    if (raw) {
+        try {
+            config = JSON.parse(raw);
+        } catch (error) {
+            console.error('Nu s-au putut analiza opțiunile pentru LinkedAutocomplete', error);
+        }
+    }
+    const app = createApp({
+        render: () => h(LinkedAutocomplete, config),
+    });
+    app.mount(element);
+});

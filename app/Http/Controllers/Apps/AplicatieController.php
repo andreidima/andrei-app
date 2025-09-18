@@ -29,8 +29,9 @@ class AplicatieController extends Controller
             // ->latest();
 
         $aplicatii = $query->simplePaginate(50);
+        $numeOptions = Aplicatie::orderBy('nume')->pluck('nume');
 
-        return view('apps.aplicatii.index', compact('aplicatii', 'searchNume'));
+        return view('apps.aplicatii.index', compact('aplicatii', 'searchNume', 'numeOptions'));
     }
 
     /**

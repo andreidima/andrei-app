@@ -37,7 +37,22 @@ class ActualizareController extends Controller
 
         $actualizari = $query->simplePaginate(50);
 
-        return view('apps.actualizari.index', compact('actualizari', 'searchAplicatie', 'searchActualizare'));
+        $aplicatiiOptions = Aplicatie::select('id', 'nume')->orderBy('nume')->get();
+        $actualizareOptions = Actualizare::select('id', 'nume', 'aplicatie_id')
+            ->with('aplicatie:id,nume')
+            ->orderBy('nume')
+            ->get()
+            ->map(function ($actualizare) {
+                return [
+                    'id' => $actualizare->id,
+                    'nume' => $actualizare->nume,
+                    'aplicatie_id' => $actualizare->aplicatie_id,
+                    'aplicatie_nume' => $actualizare->aplicatie->nume ?? '',
+                ];
+            })
+            ->values();
+
+        return view('apps.actualizari.index', compact('actualizari', 'searchAplicatie', 'searchActualizare', 'aplicatiiOptions', 'actualizareOptions'));
     }
 
     /**

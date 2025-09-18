@@ -11,21 +11,22 @@
             <div class="col-lg-6">
                 <form class="needs-validation" novalidate method="GET" action="{{ url()->current()  }}">
                     @csrf
+                    @php
+                        $aplicatiiSearchConfig = [
+                            'mode' => 'single',
+                            'inputName' => 'searchNume',
+                            'placeholder' => 'Nume',
+                            'initialValue' => $searchNume,
+                            'options' => $numeOptions,
+                        ];
+                    @endphp
+
                     <div class="row mb-1 custom-search-form justify-content-center">
                         <div class="col-lg-6">
-                            <input type="text" class="form-control rounded-3" id="searchNume" name="searchNume" placeholder="Nume" value="{{ $searchNume }}">
-                        </div>
-                    </div>
-                    <div class="row custom-search-form justify-content-center">
-                        <div class="col-lg-4">
-                            <button class="btn btn-sm w-100 btn-primary text-white border border-dark rounded-3" type="submit">
-                                <i class="fas fa-search text-white me-1"></i>Caută
-                            </button>
-                        </div>
-                        <div class="col-lg-4">
-                            <a class="btn btn-sm w-100 btn-secondary text-white border border-dark rounded-3" href="{{ url()->current() }}" role="button">
-                                <i class="far fa-trash-alt text-white me-1"></i>Resetează căutarea
-                            </a>
+                            <div
+                                data-linked-autocomplete
+                                data-config='@json($aplicatiiSearchConfig)'
+                            ></div>
                         </div>
                     </div>
                 </form>

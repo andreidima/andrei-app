@@ -52,7 +52,22 @@ class PontajController extends Controller
 
         $pontaje = $query->simplePaginate(50);
 
-        return view('apps.pontaje.index', compact('pontaje', 'searchAplicatie', 'searchActualizare', 'searchActualizareId', 'searchData'));
+        $aplicatiiOptions = Aplicatie::select('id', 'nume')->orderBy('nume')->get();
+        $actualizareOptions = Actualizare::select('id', 'nume', 'aplicatie_id')
+            ->with('aplicatie:id,nume')
+            ->orderBy('nume')
+            ->get()
+            ->map(function ($actualizare) {
+                return [
+                    'id' => $actualizare->id,
+                    'nume' => $actualizare->nume,
+                    'aplicatie_id' => $actualizare->aplicatie_id,
+                    'aplicatie_nume' => $actualizare->aplicatie->nume ?? '',
+                ];
+            })
+            ->values();
+
+        return view('apps.pontaje.index', compact('pontaje', 'searchAplicatie', 'searchActualizare', 'searchActualizareId', 'searchData', 'aplicatiiOptions', 'actualizareOptions'));
     }
 
     /**
