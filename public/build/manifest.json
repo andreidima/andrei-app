@@ -11,6 +11,11 @@
     "isEntry": true,
     "src": "resources/js/app.js"
   },
+  "resources/js/pages/statistica-charts.js": {
+    "file": "assets/statistica-charts-05e66811.js",
+    "isEntry": true,
+    "src": "resources/js/pages/statistica-charts.js"
+  },
   "resources/sass/app.scss": {
     "file": "assets/app-041e359a.css",
     "isEntry": true,
