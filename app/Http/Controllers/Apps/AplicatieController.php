@@ -26,7 +26,6 @@ class AplicatieController extends Controller
                 return $query->where('nume', $searchNume);
             })
             ->orderBy('nume');
-            // ->latest();
 
         $aplicatii = $query->simplePaginate(50);
         $numeOptions = Aplicatie::orderBy('nume')->pluck('nume');
