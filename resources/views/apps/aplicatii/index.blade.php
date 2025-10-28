@@ -128,14 +128,14 @@
                                 </td>
 
                                 <td>
-                                    <div class="d-flex justify-content-end">
-                                        <a href="{{ $aplicatie->path() }}" class="flex me-1">
+                                    <div class="d-flex flex-column flex-sm-row flex-wrap gap-2 justify-content-sm-end">
+                                        <a href="{{ $aplicatie->path() }}">
                                             <span class="badge bg-success">Vizualizează</span>
                                         </a>
-                                        <a href="{{ $aplicatie->path() }}/modifica" class="flex me-1">
+                                        <a href="{{ $aplicatie->path() }}/modifica">
                                             <span class="badge bg-primary">Modifică</span>
                                         </a>
-                                        <div style="flex" class="">
+                                        <div class="flex-sm-grow-0">
                                             <a
                                                 href="#"
                                                 data-bs-toggle="modal"
