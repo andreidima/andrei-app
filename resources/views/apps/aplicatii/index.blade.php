@@ -106,12 +106,30 @@
                                     {{ $aplicatie->vue_version }}
                                 </td> --}}
                                 <td>
-                                    @foreach (explode(',', $aplicatie->urls) as $url)
-                                        <a href="{{ $url }}" target="_blank" style="text-decoration: none">
-                                            {{ array_key_exists(1, $url = explode('//', $url)) ? $url[1] : null }}
-                                        </a>
-                                        <br>
-                                    @endforeach
+                                    <div class="d-flex flex-column flex-lg-row flex-wrap gap-2">
+                                        @foreach (explode(',', $aplicatie->urls) as $url)
+                                            @php
+                                                $cleanUrl = trim($url);
+                                                if (! $cleanUrl) {
+                                                    continue;
+                                                }
+
+                                                $parts = explode('//', $cleanUrl);
+                                                $label = $parts[1] ?? $parts[0];
+                                            @endphp
+                                            <a
+                                                href="{{ $cleanUrl }}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 text-truncate"
+                                                style="max-width: 14rem;"
+                                                title="{{ $label }}"
+                                            >
+                                                <i class="fa-solid fa-up-right-from-square"></i>
+                                                <span class="text-truncate">{{ $label }}</span>
+                                            </a>
+                                        @endforeach
+                                    </div>
                                 </td>
                                 <td>
                                     {!! nl2br( $aplicatie->urls_info) !!}
@@ -128,14 +146,14 @@
                                 </td>
 
                                 <td>
-                                    <div class="d-flex justify-content-end">
-                                        <a href="{{ $aplicatie->path() }}" class="flex me-1">
+                                    <div class="d-flex flex-column flex-sm-row flex-wrap gap-2 justify-content-sm-end">
+                                        <a href="{{ $aplicatie->path() }}">
                                             <span class="badge bg-success">Vizualizează</span>
                                         </a>
-                                        <a href="{{ $aplicatie->path() }}/modifica" class="flex me-1">
+                                        <a href="{{ $aplicatie->path() }}/modifica">
                                             <span class="badge bg-primary">Modifică</span>
                                         </a>
-                                        <div style="flex" class="">
+                                        <div class="flex-sm-grow-0">
                                             <a
                                                 href="#"
                                                 data-bs-toggle="modal"
