@@ -144,6 +144,10 @@
         }
         </style>
 
+        @php
+            $targetTotalWeeklyMinutes = 0;
+            $targetTotalMonthlyMinutes = 0;
+        @endphp
         <div class="row p-md-4 rounded-3">
             @foreach ($pontajeCumulatPeZi as $ziua=>$timp)
                 @php
@@ -174,6 +178,7 @@
                     @if ($ziua->day == 1)
                         @php
                             $timpTotalMonthly = Carbon::today();
+                            $targetTotalMonthlyMinutes = 0;
                         @endphp
                     @endif
 
@@ -185,15 +190,29 @@
                         @endfor
                         @php
                             $timpTotalWeekly = Carbon::today();
+                            $targetTotalWeeklyMinutes = 0;
                         @endphp
                     @elseif ($ziua->dayOfWeekIso == 1)
                         <tr>
                         @php
                             $timpTotalWeekly = Carbon::today();
+                            $targetTotalWeeklyMinutes = 0;
                         @endphp
                     @endif
 
-                            <td class="{{ $timp ? (Carbon::parse($timp)->hour > 6 ? 'bg-success text-white' : '') : '' }}">
+                    @php
+                        $dayTargetMinutes = $ziua->dayOfWeekIso <= 5 ? 7 * 60 : 150;
+                        $targetTotalWeeklyMinutes += $dayTargetMinutes;
+                        $targetTotalMonthlyMinutes += $dayTargetMinutes;
+                        $trackedMinutes = 0;
+                        if ($timp) {
+                            $trackedMinutes = intval(substr($timp, 0, 2)) * 60
+                                + intval(substr($timp, 3, 2))
+                                + intdiv(intval(substr($timp, 6, 2)), 60);
+                        }
+                    @endphp
+
+                            <td class="{{ $timp && $trackedMinutes >= $dayTargetMinutes ? 'bg-success text-white' : '' }}">
                                 <p class="m-0 text-end">
                                     <span class="culoare1 text-white px-1 rounded-3 text-center mx-2" style="display: inline-block; width: 30px">
                                         {{ $ziua->day }}
@@ -218,17 +237,23 @@
 
                     {{-- If it's the last day of the month (allready completed the last week in the previous IF with empty days (cells)), or if it is the last day of the week, the last cell will be filled with the total time per that week --}}
                     @if (($ziua->day == $ziua->isLastOfMonth()) || ($ziua->dayOfWeekIso == 7))
-                            <td class="text-end {{ $timpTotalWeekly ? (Carbon::parse($timpTotalWeekly)->diffInHours(Carbon::today()) > 40 ? 'bg-success text-white' : '') : '' }}">
+                        @php
+                            $timpTotalWeeklyMinutesValue = $timpTotalWeekly->diffInMinutes(Carbon::today());
+                        @endphp
+                            <td class="text-end {{ $timpTotalWeekly && ($timpTotalWeeklyMinutesValue >= $targetTotalWeeklyMinutes) ? 'bg-success text-white' : '' }}">
                                 {{ $timpTotalWeekly->diffInHours(Carbon::today()) . ':' . $timpTotalWeekly->diff(Carbon::today())->format('%I') }}
                             </td>
                         </tr>
                     @endif
 
                     @if ($ziua->isLastOfMonth())
+                        @php
+                            $timpTotalMonthlyMinutesValue = $timpTotalMonthly->diffInMinutes(Carbon::today());
+                        @endphp
                         <tr>
                             <td colspan="7" class="text-end">
                             </td>
-                            <td class="text-end {{ $timpTotalMonthly ? (Carbon::parse($timpTotalMonthly)->diffInHours(Carbon::today()) > 160 ? 'bg-success text-white' : '') : '' }}">
+                            <td class="text-end {{ $timpTotalMonthly && ($timpTotalMonthlyMinutesValue >= $targetTotalMonthlyMinutes) ? 'bg-success text-white' : '' }}">
                                 {{ $timpTotalMonthly->diffInHours(Carbon::today()) . ':' . $timpTotalMonthly->diff(Carbon::today())->format('%I') }}
                             </td>
                         </tr>
@@ -240,6 +265,13 @@
                     </div>
                 @endif
             @endforeach
+        </div>
+        <div class="row">
+            <div class="col-12 text-center">
+                <p class="small text-muted mb-0">
+                    Zilele lucrătoare necesită minim 7h pentru a deveni verzi, weekendurile minim 2h30min, iar totalurile săptămânale și lunare se calculează în funcție de numărul și tipul zilelor din interval.
+                </p>
+            </div>
         </div>
     </div>
 </div>
