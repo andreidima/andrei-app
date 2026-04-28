@@ -195,6 +195,8 @@ class PontajController extends Controller
             'today_progress' => $todayTargetSeconds > 0 ? min(1, $todayTotalSeconds / $todayTargetSeconds) : 0,
             'week_total_seconds' => $this->totalSecondsForPeriod($day->copy()->startOfWeek(), $day->copy()->endOfWeek()),
             'month_total_seconds' => $this->totalSecondsForPeriod($day->copy()->startOfMonth(), $day->copy()->endOfMonth()),
+            'week_points' => $this->dailyPointsForPeriod($day->copy()->startOfWeek(), $day->copy()->endOfWeek()),
+            'month_points' => $this->dailyPointsForPeriod($day->copy()->startOfMonth(), $day->copy()->endOfMonth()),
             'continuous_work' => $this->continuousWorkData($today),
         ];
     }
@@ -204,6 +206,27 @@ class PontajController extends Controller
         return Pontaj::whereBetween('inceput', [$start->toDateTimeString(), $end->toDateTimeString()])
             ->get()
             ->sum(fn (Pontaj $pontaj) => $this->durationSeconds($pontaj));
+    }
+
+    private function dailyPointsForPeriod(Carbon $start, Carbon $end): array
+    {
+        $points = [];
+
+        for ($date = $start->copy()->startOfDay(); $date->lte($end); $date->addDay()) {
+            $totalSeconds = $this->totalSecondsForPeriod($date->copy()->startOfDay(), $date->copy()->endOfDay());
+            $targetSeconds = $this->targetSecondsForDate($date);
+
+            $points[] = [
+                'date' => $date->toDateString(),
+                'label' => $date->isoFormat('DD MMM'),
+                'short_label' => $date->isoFormat('dd'),
+                'seconds' => $totalSeconds,
+                'target_seconds' => $targetSeconds,
+                'progress' => $targetSeconds > 0 ? min(1, $totalSeconds / $targetSeconds) : 0,
+            ];
+        }
+
+        return $points;
     }
 
     private function continuousWorkData(Carbon $untilDate): array
