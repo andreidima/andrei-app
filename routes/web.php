@@ -6,6 +6,7 @@ use App\Http\Controllers\Apps\AplicatieController;
 use App\Http\Controllers\Apps\ActualizareController;
 use App\Http\Controllers\Apps\PontajController;
 use App\Http\Controllers\Apps\FacturaController;
+use App\Http\Controllers\System\DatabaseController;
 use App\Http\Controllers\RefrainController;
 use App\Http\Controllers\AchievementController;
 
@@ -69,6 +70,9 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Notificari view route (outside of the /apps prefix)
     Route::view('/notificari', 'notificari.index')->name('notificari.index');
+
+    Route::get('/system/database', [DatabaseController::class, 'index'])->name('system.database');
+    Route::post('/system/database/migrate', [DatabaseController::class, 'migrate'])->name('system.database.migrate');
 
     // Refrains routes
     Route::resources(['refrains' => RefrainController::class,]);

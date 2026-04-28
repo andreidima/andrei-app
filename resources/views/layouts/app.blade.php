@@ -91,6 +91,19 @@
                                 <i class="fa-solid fa-trophy me-1"></i> Achievements
                             </a>
                         </li>
+                        <li class="nav-item me-3 dropdown">
+                            <a class="nav-link active dropdown-toggle" href="#" id="navbarTechDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-screwdriver-wrench me-1"></i>
+                                Tech
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarTechDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('system.database') }}">
+                                        <i class="fa-solid fa-database me-1"></i>Database & migrations
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                     </ul>
 
                     <!-- Right Side Of Navbar -->
