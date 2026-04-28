@@ -36,5 +36,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/summary', [PontajController::class, 'summary']);
         Route::post('/start', [PontajController::class, 'start']);
         Route::post('/stop', [PontajController::class, 'stop']);
+        Route::patch('/{pontaj}', [PontajController::class, 'update']);
+        Route::delete('/{pontaj}', [PontajController::class, 'destroy']);
+        Route::post('/{pontaj}/restart', [PontajController::class, 'restart']);
     });
 });

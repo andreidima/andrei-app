@@ -70,6 +70,65 @@ class PontajController extends Controller
         ]);
     }
 
+    public function update(Request $request, Pontaj $pontaj): JsonResponse
+    {
+        $validated = $request->validate([
+            'actualizare_id' => ['sometimes', 'integer', 'exists:apps_actualizari,id'],
+            'inceput' => ['required', 'date'],
+            'sfarsit' => ['nullable', 'date'],
+        ]);
+
+        $inceput = Carbon::parse($validated['inceput']);
+        $sfarsit = isset($validated['sfarsit']) ? Carbon::parse($validated['sfarsit']) : null;
+
+        if ($sfarsit && ! $inceput->isSameDay($sfarsit)) {
+            throw ValidationException::withMessages([
+                'sfarsit' => 'Sfarsitul trebuie sa fie in aceeasi zi cu inceputul.',
+            ]);
+        }
+
+        if ($sfarsit && $sfarsit->lessThanOrEqualTo($inceput)) {
+            throw ValidationException::withMessages([
+                'sfarsit' => 'Sfarsitul trebuie sa fie dupa inceput.',
+            ]);
+        }
+
+        $pontaj->update([
+            'actualizare_id' => $validated['actualizare_id'] ?? $pontaj->actualizare_id,
+            'inceput' => $inceput,
+            'sfarsit' => $sfarsit,
+        ]);
+
+        return response()->json([
+            'message' => 'Pontajul a fost actualizat.',
+            'pontaj' => $this->formatPontaj($pontaj->fresh('actualizare.aplicatie')),
+        ]);
+    }
+
+    public function destroy(Pontaj $pontaj): JsonResponse
+    {
+        $pontaj->delete();
+
+        return response()->json([
+            'message' => 'Pontajul a fost sters.',
+        ]);
+    }
+
+    public function restart(Pontaj $pontaj): JsonResponse
+    {
+        $this->closeOpenPontaj();
+
+        $newPontaj = Pontaj::create([
+            'actualizare_id' => $pontaj->actualizare_id,
+            'inceput' => Carbon::now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Pontajul a fost repornit.',
+            'open_pontaj' => $this->formatPontaj($newPontaj->load('actualizare.aplicatie')),
+        ], 201);
+    }
+
     private function closeOpenPontaj(): ?Pontaj
     {
         $openPontaje = Pontaj::whereNull('sfarsit')->get();
