@@ -12,6 +12,9 @@ use Illuminate\Validation\ValidationException;
 
 class PontajController extends Controller
 {
+    private const WEEKDAY_TARGET_SECONDS = 7 * 3600;
+    private const WEEKEND_TARGET_SECONDS = 3.5 * 3600;
+
     public function index(Request $request): JsonResponse
     {
         $date = $request->query('date', Carbon::today()->toDateString());
@@ -27,6 +30,14 @@ class PontajController extends Controller
             'today_total_seconds' => $pontaje->sum(fn (Pontaj $pontaj) => $this->durationSeconds($pontaj)),
             'pontaje' => $pontaje->map(fn (Pontaj $pontaj) => $this->formatPontaj($pontaj))->values(),
             'actualizari' => $this->actualizariOptions(),
+            'summary' => $this->summaryData($date),
+        ]);
+    }
+
+    public function summary(Request $request): JsonResponse
+    {
+        return response()->json([
+            'summary' => $this->summaryData($request->query('date')),
         ]);
     }
 
@@ -108,6 +119,83 @@ class PontajController extends Controller
                 'aplicatie_nume' => $actualizare->aplicatie->nume ?? '',
             ])
             ->values();
+    }
+
+    private function summaryData(?string $date = null): array
+    {
+        $day = $date ? Carbon::parse($date)->startOfDay() : Carbon::today();
+        $today = Carbon::today();
+
+        $todayTargetSeconds = $this->targetSecondsForDate($day);
+        $todayTotalSeconds = $this->totalSecondsForPeriod($day->copy()->startOfDay(), $day->copy()->endOfDay());
+
+        return [
+            'date' => $day->toDateString(),
+            'today_target_seconds' => $todayTargetSeconds,
+            'today_remaining_seconds' => max(0, $todayTargetSeconds - $todayTotalSeconds),
+            'today_progress' => $todayTargetSeconds > 0 ? min(1, $todayTotalSeconds / $todayTargetSeconds) : 0,
+            'week_total_seconds' => $this->totalSecondsForPeriod($day->copy()->startOfWeek(), $day->copy()->endOfWeek()),
+            'month_total_seconds' => $this->totalSecondsForPeriod($day->copy()->startOfMonth(), $day->copy()->endOfMonth()),
+            'continuous_work' => $this->continuousWorkData($today),
+        ];
+    }
+
+    private function totalSecondsForPeriod(Carbon $start, Carbon $end): int
+    {
+        return Pontaj::whereBetween('inceput', [$start->toDateTimeString(), $end->toDateTimeString()])
+            ->get()
+            ->sum(fn (Pontaj $pontaj) => $this->durationSeconds($pontaj));
+    }
+
+    private function continuousWorkData(Carbon $untilDate): array
+    {
+        $startDate = Carbon::parse('2024-01-01');
+        $dailyDurations = [];
+
+        for ($date = $untilDate->copy(); $date->gte($startDate); $date->subDay()) {
+            $dailyDurations[$date->toDateString()] = 0;
+        }
+
+        Pontaj::select('inceput', 'sfarsit')
+            ->whereDate('inceput', '>=', $startDate)
+            ->whereDate('inceput', '<=', $untilDate)
+            ->get()
+            ->each(function (Pontaj $pontaj) use (&$dailyDurations) {
+                $date = Carbon::parse($pontaj->inceput)->toDateString();
+
+                if (isset($dailyDurations[$date])) {
+                    $dailyDurations[$date] += $this->durationSeconds($pontaj);
+                }
+            });
+
+        $extraSeconds = 0;
+
+        foreach ($dailyDurations as $dateString => $durationSeconds) {
+            $date = Carbon::parse($dateString);
+            $targetSeconds = $this->targetSecondsForDate($date);
+            $totalSeconds = $durationSeconds + $extraSeconds;
+
+            if ($totalSeconds < $targetSeconds) {
+                return [
+                    'since' => $date->toDateString(),
+                    'days' => $date->diffInDays($untilDate, false),
+                    'additional_seconds_needed_for_next_day' => (int) ($targetSeconds - $totalSeconds),
+                ];
+            }
+
+            $extraSeconds = $totalSeconds - $targetSeconds;
+        }
+
+        return [
+            'since' => $startDate->toDateString(),
+            'days' => $startDate->diffInDays($untilDate, false),
+            'additional_seconds_needed_for_next_day' => 0,
+        ];
+    }
+
+    private function targetSecondsForDate(Carbon $date): int
+    {
+        return (int) ($date->isWeekday() ? self::WEEKDAY_TARGET_SECONDS : self::WEEKEND_TARGET_SECONDS);
     }
 
     private function formatPontaj(?Pontaj $pontaj): ?array

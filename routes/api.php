@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ActualizareController;
 use App\Http\Controllers\Api\PontajController;
 
 /*
@@ -28,8 +29,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/user', [AuthController::class, 'user']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 
+    Route::get('/actualizari', [ActualizareController::class, 'index']);
+
     Route::prefix('pontaje')->group(function () {
         Route::get('/', [PontajController::class, 'index']);
+        Route::get('/summary', [PontajController::class, 'summary']);
         Route::post('/start', [PontajController::class, 'start']);
         Route::post('/stop', [PontajController::class, 'stop']);
     });
