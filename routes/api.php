@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ActualizareController;
+use App\Http\Controllers\Api\MobileAppController;
 use App\Http\Controllers\Api\PontajController;
 
 /*
@@ -20,6 +21,8 @@ use App\Http\Controllers\Api\PontajController;
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 });
+
+Route::get('/mobile-app/update', [MobileAppController::class, 'update']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
