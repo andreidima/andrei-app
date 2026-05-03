@@ -189,7 +189,7 @@ class DatabaseController extends Controller
         $command = $this->composerBinary() . ' install --no-dev --optimize-autoloader --no-interaction';
 
         try {
-            $output = $this->runShellCommand($command);
+            $output = $this->runShellCommand($command, $this->composerEnvironment());
 
             Artisan::call('optimize:clear');
             $output .= "\n\n" . trim(Artisan::output());
@@ -417,7 +417,7 @@ class DatabaseController extends Controller
         $command = escapeshellcmd($candidate) . ' -r "echo PHP_SAPI;"';
 
         try {
-            $output = $this->runShellCommand($command);
+            $output = $this->runShellCommand($command, $this->composerEnvironment());
         } catch (Throwable) {
             return false;
         }
@@ -425,10 +425,27 @@ class DatabaseController extends Controller
         return trim($output) === 'cli';
     }
 
-    private function runShellCommand(string $commandLine): string
+    private function composerEnvironment(): array
+    {
+        $composerHome = storage_path('app/composer-home');
+        $composerCache = storage_path('app/composer-cache');
+
+        File::ensureDirectoryExists($composerHome);
+        File::ensureDirectoryExists($composerCache);
+
+        return [
+            ...$_ENV,
+            ...$_SERVER,
+            'HOME' => $composerHome,
+            'COMPOSER_HOME' => $composerHome,
+            'COMPOSER_CACHE_DIR' => $composerCache,
+        ];
+    }
+
+    private function runShellCommand(string $commandLine, ?array $env = null): string
     {
         if (class_exists(Process::class)) {
-            $process = Process::fromShellCommandline($commandLine, base_path(), null, null, 300);
+            $process = Process::fromShellCommandline($commandLine, base_path(), $env, null, 300);
             $process->run();
 
             $output = trim($process->getOutput() . "\n" . $process->getErrorOutput());
@@ -444,7 +461,7 @@ class DatabaseController extends Controller
             1 => ['pipe', 'w'],
             2 => ['pipe', 'w'],
         ];
-        $process = proc_open($commandLine, $descriptorSpec, $pipes, base_path());
+        $process = proc_open($commandLine, $descriptorSpec, $pipes, base_path(), $env);
 
         if (! is_resource($process)) {
             throw new RuntimeException('Nu am putut porni comanda Composer.');
