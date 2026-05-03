@@ -72,6 +72,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::view('/notificari', 'notificari.index')->name('notificari.index');
 
     Route::get('/system/database', [DatabaseController::class, 'index'])->name('system.database');
+    Route::post('/system/database/backup', [DatabaseController::class, 'backup'])->name('system.database.backup');
+    Route::get('/system/database/backups/{filename}', [DatabaseController::class, 'downloadBackup'])->name('system.database.backups.download');
     Route::post('/system/database/migrate', [DatabaseController::class, 'migrate'])->name('system.database.migrate');
 
     // Refrains routes

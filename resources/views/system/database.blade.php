@@ -117,6 +117,12 @@
                         @endif
 
                         <div class="d-flex flex-wrap gap-2 mb-3">
+                            <form method="POST" action="{{ route('system.database.backup') }}">
+                                @csrf
+                                <button class="btn btn-outline-primary rounded-3" type="submit">
+                                    <i class="fa-solid fa-download me-1"></i>Download database backup
+                                </button>
+                            </form>
                             <form method="POST" action="{{ route('system.database.migrate') }}">
                                 @csrf
                                 <button class="btn btn-danger rounded-3" type="submit">
@@ -124,8 +130,52 @@
                                 </button>
                             </form>
                             <span class="align-self-center text-muted small">
-                                Butonul ruleaza <code>php artisan migrate --force</code> pe serverul curent.
+                                Backup-urile sunt temporare si se sterg dupa download. Migrations creeaza mai intai un backup DB-only, apoi ruleaza <code>php artisan migrate --force</code>.
                             </span>
+                        </div>
+
+                        <div class="border rounded-3 p-3 mb-3">
+                            <div class="fw-bold mb-1">Backup location</div>
+                            <div class="small text-muted mb-2">
+                                Disk: <code>{{ $backupDisk }}</code> | Name: <code>{{ $backupName }}</code>
+                            </div>
+                            <div class="mb-3"><code>{{ $backupPath }}</code></div>
+                            <div class="small text-muted mb-3">
+                                Fisierele sunt pastrate aici doar temporar. Linkurile de download sterg arhiva dupa ce browserul o descarca.
+                            </div>
+
+                            @if ($recentBackups->count())
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Recent backup</th>
+                                                <th>Size</th>
+                                                <th>Modified</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($recentBackups as $backup)
+                                                <tr>
+                                                    <td>
+                                                        <code>{{ $backup['filename'] }}</code>
+                                                        <div class="small text-muted"><code>{{ $backup['path'] }}</code></div>
+                                                    </td>
+                                                    <td>{{ number_format($backup['size'] / 1024, 1) }} KB</td>
+                                                    <td>
+                                                        {{ $backup['modified_at'] }}
+                                                        <div>
+                                                            <a href="{{ route('system.database.backups.download', ['filename' => $backup['filename']]) }}">Download si sterge</a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <div class="text-muted small">No backup ZIPs found yet.</div>
+                            @endif
                         </div>
 
                         @if ($pendingMigrations->count())
@@ -142,6 +192,14 @@
                                             <tr>
                                                 <td><code>{{ $migration['migration'] }}</code></td>
                                                 <td><code>{{ $migration['filename'] }}</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2">
+                                                    <details>
+                                                        <summary class="fw-bold">Vezi codul migrarii</summary>
+                                                        <pre class="bg-light border rounded-3 p-3 small mt-2 mb-0" style="white-space: pre-wrap">{{ $migration['contents'] }}</pre>
+                                                    </details>
+                                                </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -174,6 +232,19 @@
                             <div class="mt-3">
                                 <div class="fw-bold mb-2">Last migrate output</div>
                                 <pre class="bg-light border rounded-3 p-3 small mb-0" style="white-space: pre-wrap">{{ $lastMigrationOutput }}</pre>
+                            </div>
+                        @endif
+
+                        @if (session('backup_output'))
+                            <div class="mt-3">
+                                <div class="fw-bold mb-2">Pre-migration backup output</div>
+                                @if (session('backup_filename'))
+                                    <div class="small text-muted mb-2">Filename: <code>{{ session('backup_filename') }}</code></div>
+                                    <a class="btn btn-outline-primary btn-sm rounded-3 mb-2" href="{{ route('system.database.backups.download', ['filename' => session('backup_filename')]) }}">
+                                        <i class="fa-solid fa-download me-1"></i>Download si sterge backup-ul pre-migration
+                                    </a>
+                                @endif
+                                <pre class="bg-light border rounded-3 p-3 small mb-0" style="white-space: pre-wrap">{{ session('backup_output') }}</pre>
                             </div>
                         @endif
                     </div>

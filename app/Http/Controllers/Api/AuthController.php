@@ -52,6 +52,15 @@ class AuthController extends Controller
         ]);
     }
 
+    public function logoutAll(Request $request): JsonResponse
+    {
+        $request->user()->tokens()->delete();
+
+        return response()->json([
+            'message' => 'Toate dispozitivele au fost delogate.',
+        ]);
+    }
+
     private function formatUser(User $user): array
     {
         return [

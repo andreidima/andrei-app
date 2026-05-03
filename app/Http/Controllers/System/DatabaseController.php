@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
 
 class DatabaseController extends Controller
@@ -83,6 +84,23 @@ class DatabaseController extends Controller
 
         $tables = $this->getTables();
         $schemaDumpPath = database_path('schema/mysql-schema.sql');
+        $backupName = config('backup.backup.name');
+        $backupDisk = config('backup.backup.destination.disks.0', 'local');
+        $backupDiskRoot = config("filesystems.disks.{$backupDisk}.root");
+        $backupPath = $backupDiskRoot ? $backupDiskRoot . DIRECTORY_SEPARATOR . $backupName : null;
+        $recentBackups = $backupPath && File::isDirectory($backupPath)
+            ? collect(File::files($backupPath))
+                ->filter(fn ($file) => $file->getExtension() === 'zip')
+                ->sortByDesc(fn ($file) => $file->getMTime())
+                ->take(10)
+                ->map(fn ($file) => [
+                    'filename' => $file->getFilename(),
+                    'path' => $file->getRealPath(),
+                    'size' => $file->getSize(),
+                    'modified_at' => date('Y-m-d H:i:s', $file->getMTime()),
+                ])
+                ->values()
+            : collect();
 
         return view('system.database', [
             'databaseInfo' => [
@@ -105,6 +123,10 @@ class DatabaseController extends Controller
             'schemaDumpPath' => $schemaDumpPath,
             'schemaDumpSize' => File::exists($schemaDumpPath) ? File::size($schemaDumpPath) : null,
             'schemaDumpModifiedAt' => File::exists($schemaDumpPath) ? date('Y-m-d H:i:s', File::lastModified($schemaDumpPath)) : null,
+            'backupName' => $backupName,
+            'backupDisk' => $backupDisk,
+            'backupPath' => $backupPath,
+            'recentBackups' => $recentBackups,
             'lastMigrationOutput' => $request->session()->get('migration_output'),
         ]);
     }
@@ -112,15 +134,49 @@ class DatabaseController extends Controller
     public function migrate(Request $request): RedirectResponse
     {
         try {
+            $this->cleanupOldTemporaryBackups();
+            $backup = $this->createDatabaseBackup('pre-migrate');
+
             Artisan::call('migrate', ['--force' => true]);
+            $migrationOutput = trim(Artisan::output());
 
             return back()->with([
-                'status' => 'Migrarile pending au fost rulate.',
-                'migration_output' => trim(Artisan::output()),
+                'status' => 'Backup-ul bazei de date a fost creat, apoi migrarile pending au fost rulate.',
+                'migration_output' => $migrationOutput,
+                'backup_output' => $backup['output'],
+                'backup_filename' => $backup['filename'],
             ]);
         } catch (Throwable $exception) {
             return back()->with('error', $exception->getMessage());
         }
+    }
+
+    public function backup(): RedirectResponse
+    {
+        try {
+            $this->cleanupOldTemporaryBackups();
+            $backup = $this->createDatabaseBackup('manual-db');
+
+            return redirect()
+                ->route('system.database.backups.download', ['filename' => $backup['filename']])
+                ->with('status', 'Backup-ul bazei de date a fost creat pentru download.');
+        } catch (Throwable $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+    }
+
+    public function downloadBackup(string $filename): BinaryFileResponse
+    {
+        abort_unless($filename === basename($filename), 404);
+        abort_unless(str_ends_with($filename, '.zip'), 404);
+
+        $backupPath = $this->backupDirectory() . DIRECTORY_SEPARATOR . $filename;
+
+        abort_unless(File::exists($backupPath), 404);
+
+        return response()
+            ->download($backupPath, $filename)
+            ->deleteFileAfterSend(true);
     }
 
     private function getTables(): Collection
@@ -143,5 +199,48 @@ class DatabaseController extends Controller
             })
             ->sortBy('name')
             ->values();
+    }
+
+    private function createDatabaseBackup(string $prefix): array
+    {
+        $filename = $prefix . '-' . now()->format('Y-m-d-H-i-s') . '.zip';
+
+        Artisan::call('backup:run', [
+            '--only-db' => true,
+            '--disable-notifications' => true,
+            '--filename' => $filename,
+        ]);
+
+        return [
+            'filename' => $filename,
+            'output' => trim(Artisan::output()),
+            'path' => $this->backupDirectory() . DIRECTORY_SEPARATOR . $filename,
+        ];
+    }
+
+    private function backupDirectory(): string
+    {
+        $backupName = config('backup.backup.name');
+        $backupDisk = config('backup.backup.destination.disks.0', 'local');
+        $backupDiskRoot = config("filesystems.disks.{$backupDisk}.root");
+
+        return $backupDiskRoot . DIRECTORY_SEPARATOR . $backupName;
+    }
+
+    private function cleanupOldTemporaryBackups(): void
+    {
+        $backupPath = $this->backupDirectory();
+
+        if (! File::isDirectory($backupPath)) {
+            return;
+        }
+
+        collect(File::files($backupPath))
+            ->filter(fn ($file) => in_array(true, [
+                str_starts_with($file->getFilename(), 'pre-migrate-'),
+                str_starts_with($file->getFilename(), 'manual-db-'),
+            ], true))
+            ->filter(fn ($file) => $file->getMTime() < now()->subDay()->getTimestamp())
+            ->each(fn ($file) => File::delete($file->getRealPath()));
     }
 }
