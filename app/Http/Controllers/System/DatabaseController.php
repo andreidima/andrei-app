@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\Process\Process;
 use Throwable;
 
 class DatabaseController extends Controller
@@ -128,6 +129,7 @@ class DatabaseController extends Controller
             'backupPath' => $backupPath,
             'recentBackups' => $recentBackups,
             'lastMigrationOutput' => $request->session()->get('migration_output'),
+            'lastComposerOutput' => $request->session()->get('composer_output'),
         ]);
     }
 
@@ -177,6 +179,28 @@ class DatabaseController extends Controller
         return response()
             ->download($backupPath, $filename)
             ->deleteFileAfterSend(true);
+    }
+
+    public function composerInstall(Request $request): RedirectResponse
+    {
+        $command = $this->composerBinary() . ' install --no-dev --optimize-autoloader --no-interaction';
+
+        try {
+            $output = $this->runShellCommand($command);
+
+            Artisan::call('optimize:clear');
+            $output .= "\n\n" . trim(Artisan::output());
+
+            return back()->with([
+                'status' => 'Composer install a fost rulat.',
+                'composer_output' => trim($output),
+            ]);
+        } catch (Throwable $exception) {
+            return back()->with([
+                'error' => $exception->getMessage(),
+                'composer_output' => trim($exception->getMessage()),
+            ]);
+        }
     }
 
     private function getTables(): Collection
@@ -314,5 +338,54 @@ class DatabaseController extends Controller
         }
 
         return $pdo->quote((string) $value);
+    }
+
+    private function composerBinary(): string
+    {
+        $composerPhar = base_path('composer.phar');
+
+        if (File::exists($composerPhar)) {
+            return PHP_BINARY . ' ' . escapeshellarg($composerPhar);
+        }
+
+        return 'composer';
+    }
+
+    private function runShellCommand(string $commandLine): string
+    {
+        if (class_exists(Process::class)) {
+            $process = Process::fromShellCommandline($commandLine, base_path(), null, null, 300);
+            $process->run();
+
+            $output = trim($process->getOutput() . "\n" . $process->getErrorOutput());
+
+            if (! $process->isSuccessful()) {
+                throw new RuntimeException($output ?: 'Comanda Composer a esuat.');
+            }
+
+            return $output;
+        }
+
+        $descriptorSpec = [
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+        $process = proc_open($commandLine, $descriptorSpec, $pipes, base_path());
+
+        if (! is_resource($process)) {
+            throw new RuntimeException('Nu am putut porni comanda Composer.');
+        }
+
+        $output = stream_get_contents($pipes[1]) . "\n" . stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+
+        $exitCode = proc_close($process);
+
+        if ($exitCode !== 0) {
+            throw new RuntimeException(trim($output) ?: 'Comanda Composer a esuat.');
+        }
+
+        return trim($output);
     }
 }

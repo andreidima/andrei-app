@@ -252,6 +252,35 @@
 
                 <div class="card shadow-sm mb-4">
                     <div class="card-header text-white culoare2">
+                        <i class="fa-solid fa-box-open me-1"></i>Composer
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <div class="fw-bold mb-1">Use only after deploying composer files</div>
+                            <div>
+                                This runs <code>composer install --no-dev --optimize-autoloader --no-interaction</code> on the current server,
+                                then clears Laravel optimized caches. On shared hosting this may fail if Composer, shell execution, memory, or PHP permissions are restricted.
+                            </div>
+                        </div>
+
+                        <form method="POST" action="{{ route('system.database.composer_install') }}">
+                            @csrf
+                            <button class="btn btn-outline-danger rounded-3" type="submit">
+                                <i class="fa-solid fa-box-open me-1"></i>Run composer install
+                            </button>
+                        </form>
+
+                        @if ($lastComposerOutput)
+                            <div class="mt-3">
+                                <div class="fw-bold mb-2">Last composer output</div>
+                                <pre class="bg-light border rounded-3 p-3 small mb-0" style="white-space: pre-wrap">{{ $lastComposerOutput }}</pre>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header text-white culoare2">
                         <i class="fa-solid fa-table me-1"></i>Current tables
                     </div>
                     <div class="card-body">
