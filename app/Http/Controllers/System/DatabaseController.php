@@ -189,6 +189,7 @@ class DatabaseController extends Controller
         $command = $this->composerBinary() . ' install --no-dev --optimize-autoloader --no-interaction';
 
         try {
+            $this->clearBootstrapCaches();
             $output = $this->runShellCommand($command, $this->composerEnvironment());
 
             Artisan::call('optimize:clear');
@@ -379,6 +380,19 @@ class DatabaseController extends Controller
         }
 
         return 'composer';
+    }
+
+    private function clearBootstrapCaches(): void
+    {
+        collect([
+            base_path('bootstrap/cache/packages.php'),
+            base_path('bootstrap/cache/services.php'),
+            base_path('bootstrap/cache/config.php'),
+            base_path('bootstrap/cache/routes-v7.php'),
+            base_path('bootstrap/cache/events.php'),
+        ])
+            ->filter(fn ($path) => File::exists($path))
+            ->each(fn ($path) => File::delete($path));
     }
 
     private function phpCliBinary(): string
