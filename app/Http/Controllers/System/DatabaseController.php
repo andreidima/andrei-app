@@ -375,10 +375,54 @@ class DatabaseController extends Controller
         $composerPhar = base_path('composer.phar');
 
         if (File::exists($composerPhar)) {
-            return PHP_BINARY . ' ' . escapeshellarg($composerPhar);
+            return $this->phpCliBinary() . ' ' . escapeshellarg($composerPhar);
         }
 
         return 'composer';
+    }
+
+    private function phpCliBinary(): string
+    {
+        $configuredBinary = env('COMPOSER_PHP_BINARY');
+
+        if ($configuredBinary) {
+            return escapeshellcmd($configuredBinary);
+        }
+
+        foreach ($this->phpCliCandidates() as $candidate) {
+            if ($this->isPhpCliBinary($candidate)) {
+                return escapeshellcmd($candidate);
+            }
+        }
+
+        throw new RuntimeException(
+            'Nu am gasit un PHP CLI binary pentru Composer. Seteaza COMPOSER_PHP_BINARY in .env, de exemplu /usr/bin/php sau /usr/local/bin/php.'
+        );
+    }
+
+    private function phpCliCandidates(): array
+    {
+        return array_values(array_unique(array_filter([
+            'php',
+            'php-cli',
+            '/usr/bin/php',
+            '/usr/local/bin/php',
+            PHP_BINDIR ? PHP_BINDIR . DIRECTORY_SEPARATOR . 'php' : null,
+            PHP_BINARY,
+        ])));
+    }
+
+    private function isPhpCliBinary(string $candidate): bool
+    {
+        $command = escapeshellcmd($candidate) . ' -r "echo PHP_SAPI;"';
+
+        try {
+            $output = $this->runShellCommand($command);
+        } catch (Throwable) {
+            return false;
+        }
+
+        return trim($output) === 'cli';
     }
 
     private function runShellCommand(string $commandLine): string
