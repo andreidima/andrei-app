@@ -130,7 +130,7 @@
                                 </button>
                             </form>
                             <span class="align-self-center text-muted small">
-                                Backup-urile sunt temporare si se sterg dupa download. Migrations creeaza mai intai un backup DB-only, apoi ruleaza <code>php artisan migrate --force</code>.
+                                Backup-urile SQL sunt temporare si se sterg dupa download. Migrations creeaza mai intai un backup DB-only, apoi ruleaza <code>php artisan migrate --force</code>.
                             </span>
                         </div>
 
@@ -141,7 +141,7 @@
                             </div>
                             <div class="mb-3"><code>{{ $backupPath }}</code></div>
                             <div class="small text-muted mb-3">
-                                Fisierele sunt pastrate aici doar temporar. Linkurile de download sterg arhiva dupa ce browserul o descarca.
+                                Fisierele SQL sunt pastrate aici doar temporar. Linkurile de download sterg fisierul dupa ce browserul il descarca.
                             </div>
 
                             @if ($recentBackups->count())
@@ -174,7 +174,7 @@
                                     </table>
                                 </div>
                             @else
-                                <div class="text-muted small">No backup ZIPs found yet.</div>
+                                <div class="text-muted small">No temporary SQL backups found yet.</div>
                             @endif
                         </div>
 

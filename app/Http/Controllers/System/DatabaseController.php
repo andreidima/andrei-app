@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
 
@@ -84,13 +85,12 @@ class DatabaseController extends Controller
 
         $tables = $this->getTables();
         $schemaDumpPath = database_path('schema/mysql-schema.sql');
-        $backupName = config('backup.backup.name');
-        $backupDisk = config('backup.backup.destination.disks.0', 'local');
-        $backupDiskRoot = config("filesystems.disks.{$backupDisk}.root");
-        $backupPath = $backupDiskRoot ? $backupDiskRoot . DIRECTORY_SEPARATOR . $backupName : null;
+        $backupName = 'temporary-db-backups';
+        $backupDisk = 'local';
+        $backupPath = $this->backupDirectory();
         $recentBackups = $backupPath && File::isDirectory($backupPath)
             ? collect(File::files($backupPath))
-                ->filter(fn ($file) => $file->getExtension() === 'zip')
+                ->filter(fn ($file) => $file->getExtension() === 'sql')
                 ->sortByDesc(fn ($file) => $file->getMTime())
                 ->take(10)
                 ->map(fn ($file) => [
@@ -168,7 +168,7 @@ class DatabaseController extends Controller
     public function downloadBackup(string $filename): BinaryFileResponse
     {
         abort_unless($filename === basename($filename), 404);
-        abort_unless(str_ends_with($filename, '.zip'), 404);
+        abort_unless(str_ends_with($filename, '.sql'), 404);
 
         $backupPath = $this->backupDirectory() . DIRECTORY_SEPARATOR . $filename;
 
@@ -203,28 +203,32 @@ class DatabaseController extends Controller
 
     private function createDatabaseBackup(string $prefix): array
     {
-        $filename = $prefix . '-' . now()->format('Y-m-d-H-i-s') . '.zip';
+        $filename = $prefix . '-' . now()->format('Y-m-d-H-i-s') . '.sql';
+        $path = $this->backupDirectory() . DIRECTORY_SEPARATOR . $filename;
 
-        Artisan::call('backup:run', [
-            '--only-db' => true,
-            '--disable-notifications' => true,
-            '--filename' => $filename,
-        ]);
+        File::ensureDirectoryExists($this->backupDirectory());
+        $handle = fopen($path, 'wb');
+
+        if ($handle === false) {
+            throw new RuntimeException('Nu am putut crea fisierul temporar de backup.');
+        }
+
+        try {
+            $this->writeDatabaseSqlDump($handle);
+        } finally {
+            fclose($handle);
+        }
 
         return [
             'filename' => $filename,
-            'output' => trim(Artisan::output()),
-            'path' => $this->backupDirectory() . DIRECTORY_SEPARATOR . $filename,
+            'output' => 'Backup SQL creat: ' . $filename . ' (' . number_format(File::size($path) / 1024, 1) . ' KB)',
+            'path' => $path,
         ];
     }
 
     private function backupDirectory(): string
     {
-        $backupName = config('backup.backup.name');
-        $backupDisk = config('backup.backup.destination.disks.0', 'local');
-        $backupDiskRoot = config("filesystems.disks.{$backupDisk}.root");
-
-        return $backupDiskRoot . DIRECTORY_SEPARATOR . $backupName;
+        return storage_path('app/temporary-db-backups');
     }
 
     private function cleanupOldTemporaryBackups(): void
@@ -242,5 +246,73 @@ class DatabaseController extends Controller
             ], true))
             ->filter(fn ($file) => $file->getMTime() < now()->subDay()->getTimestamp())
             ->each(fn ($file) => File::delete($file->getRealPath()));
+    }
+
+    private function writeDatabaseSqlDump($handle): void
+    {
+        $database = config('database.connections.' . config('database.default') . '.database');
+        $pdo = DB::connection()->getPdo();
+
+        fwrite($handle, "-- Andrei App database backup\n");
+        fwrite($handle, "-- Database: {$database}\n");
+        fwrite($handle, "-- Created: " . now()->toDateTimeString() . "\n\n");
+        fwrite($handle, "SET FOREIGN_KEY_CHECKS=0;\n\n");
+
+        foreach ($this->baseTables() as $table) {
+            $quotedTable = $this->quoteIdentifier($table);
+            $createRow = (array) DB::selectOne('SHOW CREATE TABLE ' . $quotedTable);
+            $createSql = array_values($createRow)[1] ?? null;
+
+            if (! $createSql) {
+                continue;
+            }
+
+            fwrite($handle, "-- Table: {$table}\n");
+            fwrite($handle, "DROP TABLE IF EXISTS {$quotedTable};\n");
+            fwrite($handle, $createSql . ";\n\n");
+
+            foreach (DB::table($table)->cursor() as $row) {
+                $row = (array) $row;
+                $columns = collect(array_keys($row))
+                    ->map(fn ($column) => $this->quoteIdentifier($column))
+                    ->implode(', ');
+                $values = collect(array_values($row))
+                    ->map(fn ($value) => $this->quoteValue($value, $pdo))
+                    ->implode(', ');
+
+                fwrite($handle, "INSERT INTO {$quotedTable} ({$columns}) VALUES ({$values});\n");
+            }
+
+            fwrite($handle, "\n");
+        }
+
+        fwrite($handle, "SET FOREIGN_KEY_CHECKS=1;\n");
+    }
+
+    private function baseTables(): Collection
+    {
+        return collect(DB::select('SHOW FULL TABLES'))
+            ->map(fn ($row) => array_values((array) $row))
+            ->filter(fn ($row) => ($row[1] ?? null) === 'BASE TABLE')
+            ->map(fn ($row) => $row[0])
+            ->values();
+    }
+
+    private function quoteIdentifier(string $identifier): string
+    {
+        return '`' . str_replace('`', '``', $identifier) . '`';
+    }
+
+    private function quoteValue(mixed $value, \PDO $pdo): string
+    {
+        if ($value === null) {
+            return 'NULL';
+        }
+
+        if (is_bool($value)) {
+            return $value ? '1' : '0';
+        }
+
+        return $pdo->quote((string) $value);
     }
 }
