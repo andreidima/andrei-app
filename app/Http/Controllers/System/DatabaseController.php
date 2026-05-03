@@ -130,6 +130,9 @@ class DatabaseController extends Controller
             'recentBackups' => $recentBackups,
             'lastMigrationOutput' => $request->session()->get('migration_output'),
             'lastComposerOutput' => $request->session()->get('composer_output'),
+            'composerPharExists' => File::exists(base_path('composer.phar')),
+            'composerPharPath' => base_path('composer.phar'),
+            'composerPharSize' => File::exists(base_path('composer.phar')) ? File::size(base_path('composer.phar')) : null,
         ]);
     }
 
@@ -194,6 +197,33 @@ class DatabaseController extends Controller
             return back()->with([
                 'status' => 'Composer install a fost rulat.',
                 'composer_output' => trim($output),
+            ]);
+        } catch (Throwable $exception) {
+            return back()->with([
+                'error' => $exception->getMessage(),
+                'composer_output' => trim($exception->getMessage()),
+            ]);
+        }
+    }
+
+    public function downloadComposer(Request $request): RedirectResponse
+    {
+        try {
+            $composerUrl = 'https://getcomposer.org/download/latest-stable/composer.phar';
+            $composerPath = base_path('composer.phar');
+            $composerContents = @file_get_contents($composerUrl);
+
+            if ($composerContents === false) {
+                throw new RuntimeException('Nu am putut descarca composer.phar. Serverul poate bloca request-urile externe.');
+            }
+
+            if (file_put_contents($composerPath, $composerContents) === false) {
+                throw new RuntimeException('Nu am putut salva composer.phar in radacina proiectului.');
+            }
+
+            return back()->with([
+                'status' => 'composer.phar a fost descarcat.',
+                'composer_output' => 'Downloaded ' . number_format(File::size($composerPath) / 1024 / 1024, 2) . ' MB to ' . $composerPath,
             ]);
         } catch (Throwable $exception) {
             return back()->with([

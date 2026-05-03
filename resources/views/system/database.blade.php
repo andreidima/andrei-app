@@ -259,16 +259,39 @@
                             <div class="fw-bold mb-1">Use only after deploying composer files</div>
                             <div>
                                 This runs <code>composer install --no-dev --optimize-autoloader --no-interaction</code> on the current server,
-                                then clears Laravel optimized caches. On shared hosting this may fail if Composer, shell execution, memory, or PHP permissions are restricted.
+                                then clears Laravel optimized caches. If <code>composer.phar</code> exists in the project root, it will use that file.
+                                On shared hosting this may fail if shell execution, memory, outbound requests, or PHP permissions are restricted.
                             </div>
                         </div>
 
-                        <form method="POST" action="{{ route('system.database.composer_install') }}">
-                            @csrf
-                            <button class="btn btn-outline-danger rounded-3" type="submit">
-                                <i class="fa-solid fa-box-open me-1"></i>Run composer install
-                            </button>
-                        </form>
+                        <div class="border rounded-3 p-3 mb-3">
+                            <div class="fw-bold mb-1">composer.phar</div>
+                            <div><code>{{ $composerPharPath }}</code></div>
+                            <div class="small text-muted">
+                                Status:
+                                @if ($composerPharExists)
+                                    found, {{ number_format(($composerPharSize ?? 0) / 1024 / 1024, 2) }} MB
+                                @else
+                                    not found
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <form method="POST" action="{{ route('system.database.composer_download') }}">
+                                @csrf
+                                <button class="btn btn-outline-primary rounded-3" type="submit">
+                                    <i class="fa-solid fa-download me-1"></i>Download composer.phar
+                                </button>
+                            </form>
+
+                            <form method="POST" action="{{ route('system.database.composer_install') }}">
+                                @csrf
+                                <button class="btn btn-outline-danger rounded-3" type="submit">
+                                    <i class="fa-solid fa-box-open me-1"></i>Run composer install
+                                </button>
+                            </form>
+                        </div>
 
                         @if ($lastComposerOutput)
                             <div class="mt-3">
