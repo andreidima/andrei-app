@@ -46,12 +46,12 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === 'admin' || ($this->role === null && $this->isPrimaryOwner());
     }
 
     public function canAccessApartments(): bool
     {
-        return in_array($this->role, ['admin', 'apartments'], true);
+        return in_array($this->role, ['admin', 'apartments'], true) || ($this->role === null && $this->isPrimaryOwner());
     }
 
     public function capabilities(): array
@@ -68,5 +68,11 @@ class User extends Authenticatable
             'admin' => 'Admin',
             'apartments' => 'Apartments',
         ];
+    }
+
+    private function isPrimaryOwner(): bool
+    {
+        return (int) $this->id === 1
+            || in_array($this->email, ['adima@validsoftware.ro', 'andrei.dima@usm.ro'], true);
     }
 }
