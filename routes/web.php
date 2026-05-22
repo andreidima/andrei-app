@@ -9,6 +9,7 @@ use App\Http\Controllers\Apps\FacturaController;
 use App\Http\Controllers\Apps\FeatureController;
 use App\Http\Controllers\ApartamentController;
 use App\Http\Controllers\System\DatabaseController;
+use App\Http\Controllers\System\UserController;
 use App\Http\Controllers\RefrainController;
 use App\Http\Controllers\AchievementController;
 
@@ -33,10 +34,14 @@ Route::redirect('/', '/acasa');
 
 Route::group(['middleware' => 'auth'], function () {
     // Home page route
-    Route::view('/acasa', 'acasa')->name('acasa');
+    Route::get('/acasa', function () {
+        return auth()->user()?->isAdmin()
+            ? view('acasa')
+            : redirect()->route('apartamente.index');
+    })->name('acasa');
 
     // Group all "apps" routes under the /apps prefix and name prefix "apps."
-    Route::group(['prefix' => 'apps', 'as' => 'apps.'], function () {
+    Route::group(['prefix' => 'apps', 'as' => 'apps.', 'middleware' => 'can:access-admin-area'], function () {
         // Aplicatii resource routes
         Route::resource('aplicatii', AplicatieController::class)
             ->parameters(['aplicatii' => 'aplicatie']);
@@ -78,21 +83,27 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Apartamente routes
     Route::resource('apartamente', ApartamentController::class)
-        ->parameters(['apartamente' => 'apartament']);
+        ->parameters(['apartamente' => 'apartament'])
+        ->middleware('can:access-apartments');
 
     // Notificari view route (outside of the /apps prefix)
-    Route::view('/notificari', 'notificari.index')->name('notificari.index');
+    Route::view('/notificari', 'notificari.index')->name('notificari.index')->middleware('can:access-admin-area');
 
-    Route::get('/system/database', [DatabaseController::class, 'index'])->name('system.database');
-    Route::post('/system/database/backup', [DatabaseController::class, 'backup'])->name('system.database.backup');
-    Route::get('/system/database/backups/{filename}', [DatabaseController::class, 'downloadBackup'])->name('system.database.backups.download');
-    Route::post('/system/database/test-mysqldump', [DatabaseController::class, 'testMysqlDump'])->name('system.database.test_mysqldump');
-    Route::post('/system/database/migrate', [DatabaseController::class, 'migrate'])->name('system.database.migrate');
-    Route::post('/system/database/composer-download', [DatabaseController::class, 'downloadComposer'])->name('system.database.composer_download');
-    Route::post('/system/database/composer-install', [DatabaseController::class, 'composerInstall'])->name('system.database.composer_install');
+    Route::group(['middleware' => 'can:access-admin-area'], function () {
+        Route::get('/system/database', [DatabaseController::class, 'index'])->name('system.database');
+        Route::post('/system/database/backup', [DatabaseController::class, 'backup'])->name('system.database.backup');
+        Route::get('/system/database/backups/{filename}', [DatabaseController::class, 'downloadBackup'])->name('system.database.backups.download');
+        Route::post('/system/database/test-mysqldump', [DatabaseController::class, 'testMysqlDump'])->name('system.database.test_mysqldump');
+        Route::post('/system/database/migrate', [DatabaseController::class, 'migrate'])->name('system.database.migrate');
+        Route::post('/system/database/composer-download', [DatabaseController::class, 'downloadComposer'])->name('system.database.composer_download');
+        Route::post('/system/database/composer-install', [DatabaseController::class, 'composerInstall'])->name('system.database.composer_install');
+        Route::resource('/system/users', UserController::class)
+            ->parameters(['users' => 'user'])
+            ->names('system.users');
+    });
 
     // Refrains routes
-    Route::resources(['refrains' => RefrainController::class,]);
+    Route::resource('refrains', RefrainController::class)->middleware('can:access-admin-area');
 
-    Route::get('/achievements', [AchievementController::class, 'index'])->name('achievements.index');
+    Route::get('/achievements', [AchievementController::class, 'index'])->name('achievements.index')->middleware('can:access-admin-area');
 });

@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ActualizareController;
+use App\Http\Controllers\Api\ApartamentController;
 use App\Http\Controllers\Api\MobileAppController;
 use App\Http\Controllers\Api\PontajController;
 
@@ -33,9 +34,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/auth/logout-all', [AuthController::class, 'logoutAll']);
 
-    Route::get('/actualizari', [ActualizareController::class, 'index']);
+    Route::apiResource('apartamente', ApartamentController::class)
+        ->parameters(['apartamente' => 'apartament'])
+        ->names('api.apartamente')
+        ->middleware('can:access-apartments');
 
-    Route::prefix('pontaje')->group(function () {
+    Route::get('/actualizari', [ActualizareController::class, 'index'])->middleware('can:access-admin-area');
+
+    Route::prefix('pontaje')->middleware('can:access-admin-area')->group(function () {
         Route::get('/', [PontajController::class, 'index']);
         Route::get('/summary', [PontajController::class, 'summary']);
         Route::post('/start', [PontajController::class, 'start']);

@@ -34,6 +34,7 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        @can('access-admin-area')
                         <li class="nav-item me-3">
                             <a class="nav-link active" aria-current="page" href="/notificari">
                                 <i class="fa-solid fa-envelope me-1"></i>Notificări
@@ -87,11 +88,15 @@
                                 </li>
                             </ul>
                         </li>
+                        @endcan
+                        @can('access-apartments')
                         <li class="nav-item me-3">
                             <a class="nav-link rounded-3 {{ request()->routeIs('apartamente.*') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('apartamente.index') }}">
                                 <i class="fa-solid fa-building me-1"></i> Apartamente
                             </a>
                         </li>
+                        @endcan
+                        @can('access-admin-area')
                         <li class="nav-item me-3">
                             <a class="nav-link rounded-3 {{ request()->routeIs('refrains.index') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('refrains.index') }}">
                                 <i class="fa-solid fa-ban me-1"></i> Refrains
@@ -113,8 +118,15 @@
                                         <i class="fa-solid fa-database me-1"></i>Database & migrations
                                     </a>
                                 </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('system.users.index') }}">
+                                        <i class="fa-solid fa-users-gear me-1"></i>Users
+                                    </a>
+                                </li>
                             </ul>
                         </li>
+                        @endcan
                     </ul>
 
                     <!-- Right Side Of Navbar -->
