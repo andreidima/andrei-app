@@ -32,6 +32,14 @@
                 <input type="number" min="0" class="form-control bg-white rounded-3 {{ $errors->has('pret') ? 'is-invalid' : '' }}" name="pret" value="{{ old('pret', $apartament->pret) }}">
             </div>
             <div class="col-lg-3 mb-4">
+                <label for="cheltuieli_lunare" class="mb-0 ps-3">Cheltuieli lunare EUR</label>
+                <input type="number" min="0" class="form-control bg-white rounded-3 {{ $errors->has('cheltuieli_lunare') ? 'is-invalid' : '' }}" name="cheltuieli_lunare" value="{{ old('cheltuieli_lunare', $apartament->cheltuieli_lunare) }}">
+            </div>
+            <div class="col-lg-3 mb-4">
+                <label for="costuri_extra_estimate" class="mb-0 ps-3">Costuri extra estimate EUR</label>
+                <input type="number" min="0" class="form-control bg-white rounded-3 {{ $errors->has('costuri_extra_estimate') ? 'is-invalid' : '' }}" name="costuri_extra_estimate" value="{{ old('costuri_extra_estimate', $apartament->costuri_extra_estimate) }}">
+            </div>
+            <div class="col-lg-3 mb-4">
                 <label for="scor" class="mb-0 ps-3">Scor 1-10</label>
                 <input type="number" min="1" max="10" class="form-control bg-white rounded-3 {{ $errors->has('scor') ? 'is-invalid' : '' }}" name="scor" value="{{ old('scor', $apartament->scor) }}">
             </div>
@@ -50,6 +58,41 @@
             <div class="col-lg-3 mb-4">
                 <label for="agentie" class="mb-0 ps-3">Agentie</label>
                 <input type="text" class="form-control bg-white rounded-3 {{ $errors->has('agentie') ? 'is-invalid' : '' }}" name="agentie" value="{{ old('agentie', $apartament->agentie) }}">
+            </div>
+            <div class="col-lg-3 mb-4">
+                <label for="peb" class="mb-0 ps-3">PEB</label>
+                <input type="text" class="form-control bg-white rounded-3 {{ $errors->has('peb') ? 'is-invalid' : '' }}" name="peb" value="{{ old('peb', $apartament->peb) }}">
+            </div>
+            <div class="col-lg-3 mb-4">
+                <label for="orientare_lumina" class="mb-0 ps-3">Lumina / orientare</label>
+                <input type="text" class="form-control bg-white rounded-3 {{ $errors->has('orientare_lumina') ? 'is-invalid' : '' }}" name="orientare_lumina" value="{{ old('orientare_lumina', $apartament->orientare_lumina) }}">
+            </div>
+            <div class="col-lg-3 mb-4">
+                <label for="renovare_necesara" class="mb-0 ps-3">Renovare necesara</label>
+                <input type="text" class="form-control bg-white rounded-3 {{ $errors->has('renovare_necesara') ? 'is-invalid' : '' }}" name="renovare_necesara" value="{{ old('renovare_necesara', $apartament->renovare_necesara) }}">
+            </div>
+            <div class="col-lg-3 mb-4">
+                <label for="zgomot" class="mb-0 ps-3">Zgomot</label>
+                <input type="text" class="form-control bg-white rounded-3 {{ $errors->has('zgomot') ? 'is-invalid' : '' }}" name="zgomot" value="{{ old('zgomot', $apartament->zgomot) }}">
+            </div>
+            <div class="col-lg-3 mb-4">
+                <label for="zona" class="mb-0 ps-3">Zona</label>
+                <input type="text" class="form-control bg-white rounded-3 {{ $errors->has('zona') ? 'is-invalid' : '' }}" name="zona" value="{{ old('zona', $apartament->zona) }}">
+            </div>
+            <div class="col-lg-3 mb-4">
+                <input type="hidden" name="are_lift" value="0">
+                <label class="mb-0 ps-3 d-block">Lift</label>
+                <input type="checkbox" class="form-check-input ms-3" name="are_lift" value="1" @checked(old('are_lift', $apartament->are_lift))>
+            </div>
+            <div class="col-lg-3 mb-4">
+                <input type="hidden" name="are_balcon" value="0">
+                <label class="mb-0 ps-3 d-block">Balcon / terasa</label>
+                <input type="checkbox" class="form-check-input ms-3" name="are_balcon" value="1" @checked(old('are_balcon', $apartament->are_balcon))>
+            </div>
+            <div class="col-lg-3 mb-4">
+                <input type="hidden" name="are_parcare" value="0">
+                <label class="mb-0 ps-3 d-block">Parcare</label>
+                <input type="checkbox" class="form-check-input ms-3" name="are_parcare" value="1" @checked(old('are_parcare', $apartament->are_parcare))>
             </div>
             <div class="col-lg-6 mb-4">
                 <label for="link_anunt" class="mb-0 ps-3">Link anunt</label>

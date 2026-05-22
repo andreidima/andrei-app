@@ -15,9 +15,14 @@ class Apartament extends Model
     protected $casts = [
         'vizionare_at' => 'datetime',
         'pret' => 'integer',
+        'cheltuieli_lunare' => 'integer',
+        'costuri_extra_estimate' => 'integer',
         'suprafata_mp' => 'integer',
         'camere' => 'integer',
         'etaj' => 'integer',
+        'are_lift' => 'boolean',
+        'are_balcon' => 'boolean',
+        'are_parcare' => 'boolean',
         'scor' => 'integer',
     ];
 
@@ -32,6 +37,8 @@ class Apartament extends Model
             'de_vazut' => 'De vazut',
             'programat' => 'Programat',
             'vazut' => 'Vazut',
+            'shortlist' => 'Shortlist',
+            'de_revazut' => 'De revazut',
             'astept_raspuns' => 'Astept raspuns',
             'respins' => 'Respins',
             'oferta' => 'Oferta',
@@ -44,6 +51,8 @@ class Apartament extends Model
             'de_vazut' => 'bg-secondary',
             'programat' => 'bg-info text-dark',
             'vazut' => 'bg-success',
+            'shortlist' => 'bg-primary',
+            'de_revazut' => 'bg-dark',
             'astept_raspuns' => 'bg-warning text-dark',
             'respins' => 'bg-danger',
             'oferta' => 'bg-primary',
