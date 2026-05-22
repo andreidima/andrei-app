@@ -16,7 +16,7 @@
                 <div class="card-body py-2 border border-secondary" style="border-radius: 0 0 40px 40px;">
                     <form class="needs-validation" novalidate method="POST" action="{{ $apartament->path() }}">
                         @method('PATCH')
-                        @include ('apps.apartamente.form', [
+                        @include ('apartamente.form', [
                             'buttonText' => 'Modifica apartamentul'
                         ])
                     </form>

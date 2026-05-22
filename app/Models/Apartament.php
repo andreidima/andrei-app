@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Apps;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +9,7 @@ class Apartament extends Model
 {
     use HasFactory;
 
-    protected $table = 'apps_apartamente';
+    protected $table = 'apartamente';
     protected $guarded = [];
 
     protected $casts = [
@@ -23,7 +23,7 @@ class Apartament extends Model
 
     public function path()
     {
-        return "/apps/apartamente/{$this->id}";
+        return "/apartamente/{$this->id}";
     }
 
     public function getStatusLabelAttribute()

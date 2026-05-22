@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Controllers\Apps;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Apps\Apartament;
+use App\Models\Apartament;
 use Illuminate\Http\Request;
 
 class ApartamentController extends Controller
@@ -31,7 +30,7 @@ class ApartamentController extends Controller
 
         $statusOptions = $this->statusOptions();
 
-        return view('apps.apartamente.index', compact('apartamente', 'search', 'status', 'statusOptions'));
+        return view('apartamente.index', compact('apartamente', 'search', 'status', 'statusOptions'));
     }
 
     public function create(Request $request)
@@ -40,14 +39,14 @@ class ApartamentController extends Controller
 
         $statusOptions = $this->statusOptions();
 
-        return view('apps.apartamente.create', compact('statusOptions'));
+        return view('apartamente.create', compact('statusOptions'));
     }
 
     public function store(Request $request)
     {
         $apartament = Apartament::create($this->validateRequest($request));
 
-        return redirect($request->session()->get('apartamentReturnUrl') ?? '/apps/apartamente')
+        return redirect($request->session()->get('apartamentReturnUrl') ?? '/apartamente')
             ->with('status', 'Apartamentul "' . $apartament->adresa . '" a fost adaugat cu succes!');
     }
 
@@ -55,7 +54,7 @@ class ApartamentController extends Controller
     {
         $request->session()->get('apartamentReturnUrl') ?? $request->session()->put('apartamentReturnUrl', url()->previous());
 
-        return view('apps.apartamente.show', compact('apartament'));
+        return view('apartamente.show', compact('apartament'));
     }
 
     public function edit(Request $request, Apartament $apartament)
@@ -64,14 +63,14 @@ class ApartamentController extends Controller
 
         $statusOptions = $this->statusOptions();
 
-        return view('apps.apartamente.edit', compact('apartament', 'statusOptions'));
+        return view('apartamente.edit', compact('apartament', 'statusOptions'));
     }
 
     public function update(Request $request, Apartament $apartament)
     {
         $apartament->update($this->validateRequest($request));
 
-        return redirect($request->session()->get('apartamentReturnUrl') ?? '/apps/apartamente')
+        return redirect($request->session()->get('apartamentReturnUrl') ?? '/apartamente')
             ->with('status', 'Apartamentul "' . $apartament->adresa . '" a fost modificat cu succes!');
     }
 

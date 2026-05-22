@@ -52,6 +52,12 @@
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
+                                    <a class="dropdown-item" href="/apps/features">
+                                        <i class="fa-solid fa-layer-group me-1"></i>Features
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
                                     <a class="dropdown-item" href="/apps/actualizari">
                                         <i class="fa-solid fa-pen-to-square me-1"></i>Actualizări
                                     </a>
@@ -79,13 +85,12 @@
                                         <i class="fa-solid fa-file-invoice me-1"></i>Facturi
                                     </a>
                                 </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="/apps/apartamente">
-                                        <i class="fa-solid fa-building me-1"></i>Apartamente
-                                    </a>
-                                </li>
                             </ul>
+                        </li>
+                        <li class="nav-item me-3">
+                            <a class="nav-link rounded-3 {{ request()->routeIs('apartamente.*') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('apartamente.index') }}">
+                                <i class="fa-solid fa-building me-1"></i> Apartamente
+                            </a>
                         </li>
                         <li class="nav-item me-3">
                             <a class="nav-link rounded-3 {{ request()->routeIs('refrains.index') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('refrains.index') }}">

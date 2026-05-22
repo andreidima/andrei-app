@@ -6,7 +6,8 @@ use App\Http\Controllers\Apps\AplicatieController;
 use App\Http\Controllers\Apps\ActualizareController;
 use App\Http\Controllers\Apps\PontajController;
 use App\Http\Controllers\Apps\FacturaController;
-use App\Http\Controllers\Apps\ApartamentController;
+use App\Http\Controllers\Apps\FeatureController;
+use App\Http\Controllers\ApartamentController;
 use App\Http\Controllers\System\DatabaseController;
 use App\Http\Controllers\RefrainController;
 use App\Http\Controllers\AchievementController;
@@ -40,6 +41,12 @@ Route::group(['middleware' => 'auth'], function () {
         Route::resource('aplicatii', AplicatieController::class)
             ->parameters(['aplicatii' => 'aplicatie']);
 
+        // Features routes
+        Route::post('features/{feature}/implementations', [FeatureController::class, 'saveImplementations'])
+            ->name('features.implementations.save');
+        Route::resource('features', FeatureController::class)
+            ->parameters(['features' => 'feature']);
+
         // Actualizari routes
         Route::get('actualizari/axios', [ActualizareController::class, 'axios'])
             ->name('actualizari.axios');
@@ -67,11 +74,11 @@ Route::group(['middleware' => 'auth'], function () {
         Route::resource('facturi', FacturaController::class)
             ->parameters(['facturi' => 'factura']);
 
-        // Apartamente routes
-        Route::resource('apartamente', ApartamentController::class)
-            ->parameters(['apartamente' => 'apartament']);
-
     });
+
+    // Apartamente routes
+    Route::resource('apartamente', ApartamentController::class)
+        ->parameters(['apartamente' => 'apartament']);
 
     // Notificari view route (outside of the /apps prefix)
     Route::view('/notificari', 'notificari.index')->name('notificari.index');
