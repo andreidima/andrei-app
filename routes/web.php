@@ -6,6 +6,7 @@ use App\Http\Controllers\Apps\AplicatieController;
 use App\Http\Controllers\Apps\ActualizareController;
 use App\Http\Controllers\Apps\PontajController;
 use App\Http\Controllers\Apps\FacturaController;
+use App\Http\Controllers\Apps\ApartamentController;
 use App\Http\Controllers\System\DatabaseController;
 use App\Http\Controllers\RefrainController;
 use App\Http\Controllers\AchievementController;
@@ -65,6 +66,10 @@ Route::group(['middleware' => 'auth'], function () {
             ->name('facturi.export');
         Route::resource('facturi', FacturaController::class)
             ->parameters(['facturi' => 'factura']);
+
+        // Apartamente routes
+        Route::resource('apartamente', ApartamentController::class)
+            ->parameters(['apartamente' => 'apartament']);
 
     });
 

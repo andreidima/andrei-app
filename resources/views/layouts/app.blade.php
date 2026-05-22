@@ -79,6 +79,12 @@
                                         <i class="fa-solid fa-file-invoice me-1"></i>Facturi
                                     </a>
                                 </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="/apps/apartamente">
+                                        <i class="fa-solid fa-building me-1"></i>Apartamente
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                         <li class="nav-item me-3">
