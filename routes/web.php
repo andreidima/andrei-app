@@ -79,6 +79,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/system/database', [DatabaseController::class, 'index'])->name('system.database');
     Route::post('/system/database/backup', [DatabaseController::class, 'backup'])->name('system.database.backup');
     Route::get('/system/database/backups/{filename}', [DatabaseController::class, 'downloadBackup'])->name('system.database.backups.download');
+    Route::post('/system/database/test-mysqldump', [DatabaseController::class, 'testMysqlDump'])->name('system.database.test_mysqldump');
     Route::post('/system/database/migrate', [DatabaseController::class, 'migrate'])->name('system.database.migrate');
     Route::post('/system/database/composer-download', [DatabaseController::class, 'downloadComposer'])->name('system.database.composer_download');
     Route::post('/system/database/composer-install', [DatabaseController::class, 'composerInstall'])->name('system.database.composer_install');

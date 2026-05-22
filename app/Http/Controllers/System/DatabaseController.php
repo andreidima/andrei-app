@@ -184,6 +184,65 @@ class DatabaseController extends Controller
             ->deleteFileAfterSend(true);
     }
 
+    public function testMysqlDump(): RedirectResponse
+    {
+        $testDumpPath = null;
+
+        try {
+            File::ensureDirectoryExists($this->backupDirectory());
+
+            $connection = config('database.connections.' . config('database.default'));
+            $database = $connection['database'] ?? null;
+            $host = $connection['host'] ?? '127.0.0.1';
+            $port = $connection['port'] ?? '3306';
+            $username = $connection['username'] ?? null;
+            $password = $connection['password'] ?? '';
+
+            if (! $database || ! $username) {
+                throw new RuntimeException('Nu am gasit database sau username in configuratia Laravel.');
+            }
+
+            $binary = $this->mysqlDumpBinary();
+            $versionOutput = $this->runShellCommand($binary . ' --version');
+            $testDumpPath = $this->backupDirectory() . DIRECTORY_SEPARATOR . 'mysqldump-test-' . now()->format('Y-m-d-H-i-s') . '.sql';
+
+            $command = implode(' ', [
+                $binary,
+                '--host=' . escapeshellarg($host),
+                '--port=' . escapeshellarg((string) $port),
+                '--user=' . escapeshellarg($username),
+                '--no-data',
+                '--single-transaction',
+                '--skip-lock-tables',
+                '--result-file=' . escapeshellarg($testDumpPath),
+                escapeshellarg($database),
+            ]);
+
+            $this->runShellCommand($command, $this->mysqlDumpEnvironment((string) $password));
+
+            if (! File::exists($testDumpPath) || File::size($testDumpPath) === 0) {
+                throw new RuntimeException('mysqldump a rulat, dar nu a creat un fisier SQL valid.');
+            }
+
+            $size = File::size($testDumpPath);
+            File::delete($testDumpPath);
+
+            return back()->with([
+                'status' => 'mysqldump este disponibil si poate crea un dump schema-only cu credentialele curente.',
+                'mysqldump_output' => trim($versionOutput . "\nSchema-only test dump creat si sters: " . number_format($size / 1024, 1) . ' KB'),
+            ]);
+        } catch (Throwable $exception) {
+            if ($testDumpPath && File::exists($testDumpPath)) {
+                File::delete($testDumpPath);
+            }
+
+            return back()->with([
+                'error' => 'Testul mysqldump a esuat: ' . $exception->getMessage(),
+                'mysqldump_output' => trim($exception->getMessage()),
+            ]);
+        }
+    }
+
     public function composerInstall(Request $request): RedirectResponse
     {
         $command = $this->composerBinary() . ' install --no-dev --optimize-autoloader --no-interaction';
@@ -382,6 +441,11 @@ class DatabaseController extends Controller
         return 'composer';
     }
 
+    private function mysqlDumpBinary(): string
+    {
+        return escapeshellcmd(env('MYSQLDUMP_BINARY', 'mysqldump'));
+    }
+
     private function clearBootstrapCaches(): void
     {
         collect([
@@ -454,6 +518,20 @@ class DatabaseController extends Controller
             'COMPOSER_HOME' => $composerHome,
             'COMPOSER_CACHE_DIR' => $composerCache,
         ];
+    }
+
+    private function mysqlDumpEnvironment(string $password): array
+    {
+        $environment = [
+            ...$_ENV,
+            ...$_SERVER,
+        ];
+
+        if ($password !== '') {
+            $environment['MYSQL_PWD'] = $password;
+        }
+
+        return $environment;
     }
 
     private function runShellCommand(string $commandLine, ?array $env = null): string

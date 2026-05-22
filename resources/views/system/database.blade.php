@@ -16,6 +16,13 @@
                     </div>
                 @endif
 
+                @if (session('mysqldump_output'))
+                    <div class="alert alert-secondary shadow-sm">
+                        <div class="fw-bold mb-2">mysqldump test output</div>
+                        <pre class="mb-0 small" style="white-space: pre-wrap">{{ session('mysqldump_output') }}</pre>
+                    </div>
+                @endif
+
                 <div class="card shadow-sm mb-4">
                     <div class="card-header text-white culoare2 d-flex justify-content-between align-items-center">
                         <span><i class="fa-solid fa-database me-1"></i>Database & migrations</span>
@@ -127,6 +134,12 @@
                                 @csrf
                                 <button class="btn btn-danger rounded-3" type="submit">
                                     <i class="fa-solid fa-play me-1"></i>Run pending migrations
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ route('system.database.test_mysqldump') }}">
+                                @csrf
+                                <button class="btn btn-outline-secondary rounded-3" type="submit">
+                                    <i class="fa-solid fa-vial me-1"></i>Test mysqldump availability
                                 </button>
                             </form>
                             <span class="align-self-center text-muted small">
