@@ -132,6 +132,15 @@
                             </form>
                             <form method="POST" action="{{ route('system.database.migrate') }}">
                                 @csrf
+                                @if ($destructivePendingMigrations->isNotEmpty())
+                                    <input type="hidden" name="confirm_destructive_migrations" value="0">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" value="1" id="confirmDestructiveMigrations" name="confirm_destructive_migrations">
+                                        <label class="form-check-label small" for="confirmDestructiveMigrations">
+                                            Confirm migrari potential distructive
+                                        </label>
+                                    </div>
+                                @endif
                                 <button class="btn btn-danger rounded-3" type="submit">
                                     <i class="fa-solid fa-play me-1"></i>Run pending migrations
                                 </button>
@@ -143,7 +152,7 @@
                                 </button>
                             </form>
                             <span class="align-self-center text-muted small">
-                                Backup-urile SQL sunt temporare si se sterg dupa download. Migrations creeaza mai intai un backup DB-only, apoi ruleaza <code>php artisan migrate --force</code>.
+                                Backup-urile SQL sunt pastrate 14 zile. Backup-urile pre-migration nu se sterg dupa download. Migrations creeaza mai intai un backup DB-only, apoi ruleaza <code>php artisan migrate --force</code>.
                             </span>
                         </div>
 
@@ -154,7 +163,7 @@
                             </div>
                             <div class="mb-3"><code>{{ $backupPath }}</code></div>
                             <div class="small text-muted mb-3">
-                                Fisierele SQL sunt pastrate aici doar temporar. Linkurile de download sterg fisierul dupa ce browserul il descarca.
+                                Fisierele SQL sunt pastrate aici 14 zile. Linkurile de download sterg fisierul dupa descarcare doar pentru backup-uri manuale; backup-urile pre-migration raman pe server pana la cleanup.
                             </div>
 
                             @if ($recentBackups->count())
@@ -192,6 +201,24 @@
                         </div>
 
                         @if ($pendingMigrations->count())
+                            @if ($destructivePendingMigrations->isNotEmpty())
+                                <div class="alert alert-danger">
+                                    <div class="fw-bold mb-1">Potential destructive migrations detected</div>
+                                    <div class="mb-2">
+                                        Aceste migrari contin operatii de tip drop, rename, truncate sau raw SQL similar.
+                                        Pentru rulare este necesara bifarea confirmarii de langa butonul de migrate.
+                                    </div>
+                                    <ul class="mb-0">
+                                        @foreach ($destructivePendingMigrations as $migration)
+                                            <li>
+                                                <code>{{ $migration['filename'] }}</code>
+                                                <span class="text-muted">({{ $migration['destructive_matches']->implode(', ') }})</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
                             <div class="table-responsive mb-3">
                                 <table class="table table-sm table-striped align-middle">
                                     <thead>

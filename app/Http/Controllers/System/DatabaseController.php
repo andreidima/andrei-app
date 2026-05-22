@@ -22,6 +22,7 @@ class DatabaseController extends Controller
         $dbMigrations = collect();
         $repoMigrations = collect();
         $pendingMigrations = collect();
+        $destructivePendingMigrations = collect();
         $ranMigrations = collect();
         $dbOnlyMigrations = collect();
         $pretendOutput = '';
@@ -60,6 +61,8 @@ class DatabaseController extends Controller
         $pendingMigrations = $repoMigrations
             ->filter(fn ($migration) => ! $dbMigrationNames->contains($migration['migration']))
             ->values();
+
+        $destructivePendingMigrations = $this->detectDestructiveMigrations($pendingMigrations);
 
         $ranMigrations = $repoMigrations
             ->map(function ($migration) use ($dbMigrations) {
@@ -116,6 +119,7 @@ class DatabaseController extends Controller
             'dbMigrations' => $dbMigrations,
             'repoMigrations' => $repoMigrations,
             'pendingMigrations' => $pendingMigrations,
+            'destructivePendingMigrations' => $destructivePendingMigrations,
             'ranMigrations' => $ranMigrations,
             'dbOnlyMigrations' => $dbOnlyMigrations,
             'pretendOutput' => $pretendOutput,
@@ -139,6 +143,14 @@ class DatabaseController extends Controller
     public function migrate(Request $request): RedirectResponse
     {
         try {
+            $destructivePendingMigrations = $this->detectDestructiveMigrations($this->pendingMigrationFiles());
+
+            if ($destructivePendingMigrations->isNotEmpty() && ! $request->boolean('confirm_destructive_migrations')) {
+                return back()->with([
+                    'error' => 'Exista migrari pending cu operatii potential distructive. Confirma explicit inainte de rulare.',
+                ]);
+            }
+
             $this->cleanupOldTemporaryBackups();
             $backup = $this->createDatabaseBackup('pre-migrate');
 
@@ -181,7 +193,7 @@ class DatabaseController extends Controller
 
         return response()
             ->download($backupPath, $filename)
-            ->deleteFileAfterSend(true);
+            ->deleteFileAfterSend(! str_starts_with($filename, 'pre-migrate-'));
     }
 
     public function testMysqlDump(): RedirectResponse
@@ -321,6 +333,57 @@ class DatabaseController extends Controller
         $path = $this->backupDirectory() . DIRECTORY_SEPARATOR . $filename;
 
         File::ensureDirectoryExists($this->backupDirectory());
+
+        try {
+            return $this->createMysqlDumpBackup($filename, $path);
+        } catch (Throwable $exception) {
+            return $this->createPhpDatabaseBackup($filename, $path, $exception->getMessage());
+        }
+    }
+
+    private function createMysqlDumpBackup(string $filename, string $path): array
+    {
+        $connection = config('database.connections.' . config('database.default'));
+        $database = $connection['database'] ?? null;
+        $host = $connection['host'] ?? '127.0.0.1';
+        $port = $connection['port'] ?? '3306';
+        $username = $connection['username'] ?? null;
+        $password = $connection['password'] ?? '';
+
+        if (! $database || ! $username) {
+            throw new RuntimeException('Nu am gasit database sau username in configuratia Laravel.');
+        }
+
+        $command = implode(' ', [
+            $this->mysqlDumpBinary(),
+            '--host=' . escapeshellarg($host),
+            '--port=' . escapeshellarg((string) $port),
+            '--user=' . escapeshellarg($username),
+            '--single-transaction',
+            '--skip-lock-tables',
+            '--routines',
+            '--triggers',
+            '--events',
+            '--result-file=' . escapeshellarg($path),
+            escapeshellarg($database),
+        ]);
+
+        $this->runShellCommand($command, $this->mysqlDumpEnvironment((string) $password));
+
+        if (! File::exists($path) || File::size($path) === 0) {
+            throw new RuntimeException('mysqldump a rulat, dar nu a creat un fisier SQL valid.');
+        }
+
+        return [
+            'filename' => $filename,
+            'output' => 'Backup SQL creat cu mysqldump: ' . $filename . ' (' . number_format(File::size($path) / 1024, 1) . ' KB)',
+            'path' => $path,
+            'driver' => 'mysqldump',
+        ];
+    }
+
+    private function createPhpDatabaseBackup(string $filename, string $path, string $fallbackReason): array
+    {
         $handle = fopen($path, 'wb');
 
         if ($handle === false) {
@@ -335,8 +398,9 @@ class DatabaseController extends Controller
 
         return [
             'filename' => $filename,
-            'output' => 'Backup SQL creat: ' . $filename . ' (' . number_format(File::size($path) / 1024, 1) . ' KB)',
+            'output' => 'Backup SQL creat cu fallback PHP: ' . $filename . ' (' . number_format(File::size($path) / 1024, 1) . " KB)\nMotiv fallback mysqldump: " . $fallbackReason,
             'path' => $path,
+            'driver' => 'php',
         ];
     }
 
@@ -358,7 +422,7 @@ class DatabaseController extends Controller
                 str_starts_with($file->getFilename(), 'pre-migrate-'),
                 str_starts_with($file->getFilename(), 'manual-db-'),
             ], true))
-            ->filter(fn ($file) => $file->getMTime() < now()->subDay()->getTimestamp())
+            ->filter(fn ($file) => $file->getMTime() < now()->subDays(14)->getTimestamp())
             ->each(fn ($file) => File::delete($file->getRealPath()));
     }
 
@@ -532,6 +596,65 @@ class DatabaseController extends Controller
         }
 
         return $environment;
+    }
+
+    private function pendingMigrationFiles(): Collection
+    {
+        if (! Schema::hasTable('migrations')) {
+            return $this->repoMigrationFiles();
+        }
+
+        $dbMigrationNames = DB::table('migrations')->pluck('migration');
+
+        return $this->repoMigrationFiles()
+            ->filter(fn ($migration) => ! $dbMigrationNames->contains($migration['migration']))
+            ->values();
+    }
+
+    private function repoMigrationFiles(): Collection
+    {
+        $migrationPaths = collect([
+            database_path('migrations'),
+            base_path('vendor/laravel/telescope/database/migrations'),
+        ])->filter(fn ($path) => File::isDirectory($path));
+
+        return $migrationPaths
+            ->flatMap(fn ($path) => File::files($path))
+            ->map(fn ($file) => [
+                'migration' => pathinfo($file->getFilename(), PATHINFO_FILENAME),
+                'filename' => $file->getFilename(),
+                'path' => $file->getRealPath(),
+                'contents' => File::get($file->getRealPath()),
+            ])
+            ->sortBy('migration')
+            ->values();
+    }
+
+    private function detectDestructiveMigrations(Collection $migrations): Collection
+    {
+        $patterns = [
+            'dropTable' => '/->\s*dropTable\s*\(|Schema::\s*drop\s*\(|Schema::\s*dropIfExists\s*\(/i',
+            'dropColumn' => '/->\s*dropColumn\s*\(/i',
+            'renameTable' => '/->\s*rename\s*\(|Schema::\s*rename\s*\(/i',
+            'renameColumn' => '/->\s*renameColumn\s*\(/i',
+            'raw DROP' => '/DB::\s*statement\s*\([^;]*(DROP\s+TABLE|DROP\s+COLUMN|ALTER\s+TABLE[^;]*\sDROP\s|TRUNCATE\s+TABLE)/is',
+            'raw RENAME' => '/DB::\s*statement\s*\([^;]*(RENAME\s+TABLE|ALTER\s+TABLE[^;]*\sRENAME\s)/is',
+        ];
+
+        return $migrations
+            ->map(function ($migration) use ($patterns) {
+                $matches = collect($patterns)
+                    ->filter(fn ($pattern) => preg_match($pattern, $migration['contents']))
+                    ->keys()
+                    ->values();
+
+                return [
+                    ...$migration,
+                    'destructive_matches' => $matches,
+                ];
+            })
+            ->filter(fn ($migration) => $migration['destructive_matches']->isNotEmpty())
+            ->values();
     }
 
     private function runShellCommand(string $commandLine, ?array $env = null): string
