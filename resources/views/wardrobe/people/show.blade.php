@@ -13,6 +13,8 @@
             <dl class="row">
                 <dt class="col-md-3">Email</dt>
                 <dd class="col-md-9">{{ $person->email ?: '-' }}</dd>
+                <dt class="col-md-3">Type</dt>
+                <dd class="col-md-9">{{ $person->contactTypeLabel() }}</dd>
                 <dt class="col-md-3">Phone</dt>
                 <dd class="col-md-9">{{ $person->phone ?: '-' }}</dd>
                 <dt class="col-md-3">Notes</dt>
@@ -33,8 +35,8 @@
                     <tbody>
                         @forelse ($person->meetings as $meeting)
                             <tr>
-                                <td>{{ $meeting->met_at?->format('Y-m-d H:i') }}</td>
-                                <td>{{ $meeting->title ?: '-' }}</td>
+                                <td>{{ $meeting->met_at?->format('Y-m-d') }}</td>
+                                <td>{{ $meeting->displayTitle() }}</td>
                                 <td>{{ $meeting->clothingItems->pluck('name')->join(', ') }}</td>
                                 <td class="text-end">
                                     <a href="{{ route('wardrobe.meetings.show', $meeting) }}" class="badge bg-success text-decoration-none">View</a>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Wardrobe\ClothingItem;
 use App\Models\Wardrobe\Meeting;
 use App\Models\Wardrobe\Person;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -54,6 +55,7 @@ class MeetingController extends Controller
         $people = $data['people'] ?? [];
         $clothingItems = $data['clothing_items'] ?? [];
         unset($data['people'], $data['clothing_items'], $data['outfit_photo'], $data['remove_outfit_photo']);
+        $data = $this->prepareData($data);
 
         $data['outfit_photo_path'] = $this->storePhoto($request);
 
@@ -88,6 +90,7 @@ class MeetingController extends Controller
         $people = $data['people'] ?? [];
         $clothingItems = $data['clothing_items'] ?? [];
         unset($data['people'], $data['clothing_items'], $data['outfit_photo'], $data['remove_outfit_photo']);
+        $data = $this->prepareData($data);
 
         if ($request->boolean('remove_outfit_photo')) {
             $this->deletePhoto($meeting->outfit_photo_path);
@@ -120,7 +123,7 @@ class MeetingController extends Controller
     {
         return $request->validate([
             'title' => 'nullable|max:200',
-            'met_at' => 'required|date',
+            'met_on' => 'required|date',
             'location' => 'nullable|max:200',
             'clothes_description' => 'nullable|max:10000',
             'notes' => 'nullable|max:5000',
@@ -138,7 +141,39 @@ class MeetingController extends Controller
         return [
             'people' => Person::orderBy('name')->get(),
             'clothingItems' => ClothingItem::orderBy('name')->get(),
+            'wearHistory' => $this->wearHistory(),
         ];
+    }
+
+    protected function prepareData(array $data): array
+    {
+        $data['met_at'] = Carbon::parse($data['met_on'])->startOfDay();
+        unset($data['met_on']);
+
+        $data['title'] = trim((string) ($data['title'] ?? '')) ?: null;
+
+        return $data;
+    }
+
+    protected function wearHistory(): array
+    {
+        return Person::with(['meetings' => function ($query) {
+            $query->latest('met_at')->with('clothingItems');
+        }])->get()->mapWithKeys(function (Person $person) {
+            return [
+                $person->id => $person->meetings->map(function (Meeting $meeting) {
+                    return [
+                        'id' => $meeting->id,
+                        'date' => $meeting->met_at?->format('Y-m-d'),
+                        'label' => $meeting->displayTitle(),
+                        'items' => $meeting->clothingItems->map(fn (ClothingItem $item) => [
+                            'id' => $item->id,
+                            'name' => $item->displayName(),
+                        ])->values(),
+                    ];
+                })->values(),
+            ];
+        })->all();
     }
 
     protected function storePhoto(Request $request): ?string

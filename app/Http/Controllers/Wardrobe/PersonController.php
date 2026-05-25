@@ -17,6 +17,7 @@ class PersonController extends Controller
             ->when($search, function ($query, $search) {
                 $query->where(function ($query) use ($search) {
                     $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('contact_type', 'like', '%' . $search . '%')
                         ->orWhere('email', 'like', '%' . $search . '%')
                         ->orWhere('phone', 'like', '%' . $search . '%')
                         ->orWhere('notes', 'like', '%' . $search . '%');
@@ -30,7 +31,10 @@ class PersonController extends Controller
 
     public function create()
     {
-        return view('wardrobe.people.create', ['person' => new Person()]);
+        return view('wardrobe.people.create', [
+            'person' => new Person(['contact_type' => 'person']),
+            'contactTypes' => Person::CONTACT_TYPES,
+        ]);
     }
 
     public function store(Request $request)
@@ -38,7 +42,7 @@ class PersonController extends Controller
         $person = Person::create($this->validateRequest($request));
 
         return redirect()->route('wardrobe.people.index')
-            ->with('status', 'Person "' . $person->name . '" was added.');
+            ->with('status', 'Contact "' . $person->name . '" was added.');
     }
 
     public function show(Person $person)
@@ -52,7 +56,10 @@ class PersonController extends Controller
 
     public function edit(Person $person)
     {
-        return view('wardrobe.people.edit', compact('person'));
+        return view('wardrobe.people.edit', [
+            'person' => $person,
+            'contactTypes' => Person::CONTACT_TYPES,
+        ]);
     }
 
     public function update(Request $request, Person $person)
@@ -60,7 +67,7 @@ class PersonController extends Controller
         $person->update($this->validateRequest($request));
 
         return redirect()->route('wardrobe.people.index')
-            ->with('status', 'Person "' . $person->name . '" was updated.');
+            ->with('status', 'Contact "' . $person->name . '" was updated.');
     }
 
     public function destroy(Person $person)
@@ -68,13 +75,14 @@ class PersonController extends Controller
         $person->delete();
 
         return redirect()->route('wardrobe.people.index')
-            ->with('status', 'Person "' . $person->name . '" was deleted.');
+            ->with('status', 'Contact "' . $person->name . '" was deleted.');
     }
 
     protected function validateRequest(Request $request): array
     {
         return $request->validate([
             'name' => 'required|max:200',
+            'contact_type' => 'required|in:' . implode(',', array_keys(Person::CONTACT_TYPES)),
             'email' => 'nullable|email|max:200',
             'phone' => 'nullable|max:100',
             'notes' => 'nullable|max:5000',

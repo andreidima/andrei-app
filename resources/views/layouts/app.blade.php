@@ -121,7 +121,7 @@
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item" href="{{ route('wardrobe.people.index') }}">
-                                        <i class="fa-solid fa-users me-1"></i>People
+                                        <i class="fa-solid fa-users me-1"></i>Contacts
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>

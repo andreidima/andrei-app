@@ -65,7 +65,7 @@
                                         </span>
                                     @endif
                                 </td>
-                                <td>{{ $clothingItem->name }}</td>
+                                <td>{{ $clothingItem->displayName() }}</td>
                                 <td>{{ $clothingItem->category }}</td>
                                 <td>{{ $clothingItem->color }}</td>
                                 <td>{{ $clothingItem->brand }}</td>

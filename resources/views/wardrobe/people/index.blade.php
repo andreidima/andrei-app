@@ -6,12 +6,12 @@
         <div class="card-header culoare2 text-white">
             <div class="row align-items-center g-2">
                 <div class="col-lg-3">
-                    <span class="fs-5"><i class="fa-solid fa-users me-1"></i>People</span>
+                    <span class="fs-5"><i class="fa-solid fa-users me-1"></i>Contacts</span>
                 </div>
                 <div class="col-lg-6">
                     <form method="GET" action="{{ route('wardrobe.people.index') }}">
                         <div class="input-group input-group-sm">
-                            <input type="text" name="search" class="form-control" placeholder="Search people" value="{{ $search }}">
+                            <input type="text" name="search" class="form-control" placeholder="Search contacts" value="{{ $search }}">
                             <button class="btn btn-primary text-white" type="submit"><i class="fa-solid fa-search me-1"></i>Search</button>
                             <a href="{{ route('wardrobe.people.index') }}" class="btn btn-secondary">Reset</a>
                         </div>
@@ -19,7 +19,7 @@
                 </div>
                 <div class="col-lg-3 text-lg-end">
                     <a href="{{ route('wardrobe.people.create') }}" class="btn btn-sm btn-success text-white">
-                        <i class="fa-solid fa-plus me-1"></i>Add person
+                        <i class="fa-solid fa-plus me-1"></i>Add contact
                     </a>
                 </div>
             </div>
@@ -33,6 +33,7 @@
                     <thead>
                         <tr>
                             <th>Name</th>
+                            <th>Type</th>
                             <th>Email</th>
                             <th>Phone</th>
                             <th class="text-end">Meetings</th>
@@ -43,6 +44,7 @@
                         @forelse ($people as $person)
                             <tr>
                                 <td>{{ $person->name }}</td>
+                                <td>{{ $person->contactTypeLabel() }}</td>
                                 <td>{{ $person->email }}</td>
                                 <td>{{ $person->phone }}</td>
                                 <td class="text-end">{{ $person->meetings_count }}</td>
@@ -54,7 +56,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center text-muted">No people found.</td>
+                                <td colspan="6" class="text-center text-muted">No contacts found.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -76,7 +78,7 @@
                     <h5 class="modal-title">Delete {{ $person->name }}</h5>
                     <button type="button" class="btn-close bg-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">Delete this person from Wardrobe Tracker?</div>
+                <div class="modal-body">Delete this contact from Wardrobe Tracker?</div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <form method="POST" action="{{ route('wardrobe.people.destroy', $person) }}">

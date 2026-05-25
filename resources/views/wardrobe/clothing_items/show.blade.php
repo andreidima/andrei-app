@@ -4,7 +4,7 @@
 <div class="container">
     <div class="card shadow-sm">
         <div class="card-header culoare2 text-white d-flex justify-content-between align-items-center">
-            <span class="fs-5"><i class="fa-solid fa-shirt me-1"></i>{{ $clothingItem->name }}</span>
+            <span class="fs-5"><i class="fa-solid fa-shirt me-1"></i>{{ $clothingItem->displayName() }}</span>
             <a href="{{ route('wardrobe.clothing-items.edit', $clothingItem) }}" class="btn btn-sm btn-primary text-white">Edit</a>
         </div>
         <div class="card-body">
@@ -41,15 +41,15 @@
                         <tr>
                             <th>Date</th>
                             <th>Title</th>
-                            <th>People</th>
+                            <th>Contacts</th>
                             <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($clothingItem->meetings as $meeting)
                             <tr>
-                                <td>{{ $meeting->met_at?->format('Y-m-d H:i') }}</td>
-                                <td>{{ $meeting->title ?: '-' }}</td>
+                                <td>{{ $meeting->met_at?->format('Y-m-d') }}</td>
+                                <td>{{ $meeting->displayTitle() }}</td>
                                 <td>{{ $meeting->people->pluck('name')->join(', ') }}</td>
                                 <td class="text-end">
                                     <a href="{{ route('wardrobe.meetings.show', $meeting) }}" class="badge bg-success text-decoration-none">View</a>

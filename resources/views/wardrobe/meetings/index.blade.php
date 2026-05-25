@@ -16,7 +16,7 @@
                             </div>
                             <div class="col-md-3">
                                 <select name="person_id" class="form-select form-select-sm">
-                                    <option value="">All people</option>
+                                    <option value="">All contacts</option>
                                     @foreach ($people as $person)
                                         <option value="{{ $person->id }}" {{ (string) $personId === (string) $person->id ? 'selected' : '' }}>{{ $person->name }}</option>
                                     @endforeach
@@ -56,16 +56,12 @@
                                 <div class="col-md-2">
                                     @if ($meeting->outfitPhotoUrl())
                                         <img src="{{ $meeting->outfitPhotoUrl() }}" alt="Outfit photo" class="img-fluid img-thumbnail" style="width: 100%; max-height: 220px; object-fit: cover;">
-                                    @else
-                                        <div class="bg-light border rounded d-flex align-items-center justify-content-center" style="height: 140px;">
-                                            <i class="fa-solid fa-image fa-2x text-muted"></i>
-                                        </div>
                                     @endif
                                 </div>
                                 <div class="col-md-7">
                                     <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                                        <h2 class="h5 mb-0">{{ $meeting->title ?: 'Meeting' }}</h2>
-                                        <span class="badge bg-secondary">{{ $meeting->met_at?->format('Y-m-d H:i') }}</span>
+                                        <h2 class="h5 mb-0">{{ $meeting->displayTitle() }}</h2>
+                                        <span class="badge bg-secondary">{{ $meeting->met_at?->format('Y-m-d') }}</span>
                                         @if ($meeting->location)
                                             <span class="badge bg-info text-dark">{{ $meeting->location }}</span>
                                         @endif
@@ -74,10 +70,12 @@
                                         @forelse ($meeting->people as $person)
                                             <a href="{{ route('wardrobe.people.show', $person) }}" class="badge bg-primary text-white text-decoration-none">{{ $person->name }}</a>
                                         @empty
-                                            <span class="text-muted">No people selected.</span>
+                                            <span class="text-muted">No contacts selected.</span>
                                         @endforelse
                                     </div>
-                                    <div>{!! nl2br(e($meeting->clothes_description ?: 'No clothes description.')) !!}</div>
+                                    @if ($meeting->clothes_description)
+                                        <div>{!! nl2br(e($meeting->clothes_description)) !!}</div>
+                                    @endif
                                 </div>
                                 <div class="col-md-3">
                                     <div class="d-flex flex-wrap gap-2 justify-content-md-end mb-3">

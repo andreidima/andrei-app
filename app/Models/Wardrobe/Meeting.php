@@ -27,6 +27,19 @@ class Meeting extends Model
         return $this->outfit_photo_path ? Storage::disk('public')->url($this->outfit_photo_path) : null;
     }
 
+    public function displayTitle(): string
+    {
+        if ($this->title) {
+            return $this->title;
+        }
+
+        $contacts = $this->relationLoaded('people')
+            ? $this->people->pluck('name')->join(', ')
+            : $this->people()->pluck('name')->join(', ');
+
+        return trim(($contacts ?: 'Meeting') . ' - ' . $this->met_at?->format('Y-m-d'));
+    }
+
     public function people(): BelongsToMany
     {
         return $this->belongsToMany(Person::class, 'wardrobe_meeting_person')

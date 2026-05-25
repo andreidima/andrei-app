@@ -41,19 +41,23 @@ class ClothingItemController extends Controller
 
     public function create()
     {
-        return view('wardrobe.clothing_items.create', ['clothingItem' => new ClothingItem()]);
+        return view('wardrobe.clothing_items.create', array_merge(
+            ['clothingItem' => new ClothingItem()],
+            $this->formOptions()
+        ));
     }
 
     public function store(Request $request)
     {
         $data = $this->validateRequest($request);
+        $data = $this->prepareData($data);
         $data['photo_path'] = $this->storePhoto($request);
         unset($data['photo'], $data['remove_photo']);
 
         $clothingItem = ClothingItem::create($data);
 
         return redirect()->route('wardrobe.clothing-items.index')
-            ->with('status', 'Clothing item "' . $clothingItem->name . '" was added.');
+            ->with('status', 'Clothing item "' . $clothingItem->displayName() . '" was added.');
     }
 
     public function show(ClothingItem $clothingItem)
@@ -67,12 +71,16 @@ class ClothingItemController extends Controller
 
     public function edit(ClothingItem $clothingItem)
     {
-        return view('wardrobe.clothing_items.edit', compact('clothingItem'));
+        return view('wardrobe.clothing_items.edit', array_merge(
+            compact('clothingItem'),
+            $this->formOptions()
+        ));
     }
 
     public function update(Request $request, ClothingItem $clothingItem)
     {
         $data = $this->validateRequest($request);
+        $data = $this->prepareData($data);
 
         if ($request->boolean('remove_photo')) {
             $this->deletePhoto($clothingItem->photo_path);
@@ -88,7 +96,7 @@ class ClothingItemController extends Controller
         $clothingItem->update($data);
 
         return redirect()->route('wardrobe.clothing-items.index')
-            ->with('status', 'Clothing item "' . $clothingItem->name . '" was updated.');
+            ->with('status', 'Clothing item "' . $clothingItem->displayName() . '" was updated.');
     }
 
     public function destroy(ClothingItem $clothingItem)
@@ -97,13 +105,13 @@ class ClothingItemController extends Controller
         $clothingItem->delete();
 
         return redirect()->route('wardrobe.clothing-items.index')
-            ->with('status', 'Clothing item "' . $clothingItem->name . '" was deleted.');
+            ->with('status', 'Clothing item "' . $clothingItem->displayName() . '" was deleted.');
     }
 
     protected function validateRequest(Request $request): array
     {
         return $request->validate([
-            'name' => 'required|max:200',
+            'name' => 'nullable|required_without:category|max:200',
             'category' => 'nullable|max:120',
             'color' => 'nullable|max:120',
             'brand' => 'nullable|max:120',
@@ -111,6 +119,49 @@ class ClothingItemController extends Controller
             'photo' => 'nullable|image|max:5120',
             'remove_photo' => 'nullable|boolean',
         ]);
+    }
+
+    protected function prepareData(array $data): array
+    {
+        foreach (['name', 'category', 'color', 'brand'] as $field) {
+            $data[$field] = trim((string) ($data[$field] ?? '')) ?: null;
+        }
+
+        if ($data['category']) {
+            $category = strtolower($data['category']);
+            $data['category'] = match ($category) {
+                'shirt', 'shirts' => 'shirt',
+                'short', 'shorts' => 'shorts',
+                default => $category,
+            };
+        }
+
+        if ($data['color']) {
+            $data['color'] = strtolower($data['color']);
+        }
+
+        if ($data['brand']) {
+            $data['brand'] = ucwords(strtolower($data['brand']));
+        }
+
+        if (! $data['name']) {
+            $data['name'] = collect([$data['brand'], $data['color'], $data['category']])
+                ->filter()
+                ->join(' ') ?: 'Clothing item';
+        }
+
+        return $data;
+    }
+
+    protected function formOptions(): array
+    {
+        $defaultCategories = collect(['shirt', 'shorts', 'pants', 'dress', 'skirt', 'jacket', 'sweater', 'shoes', 'accessory']);
+
+        return [
+            'categories' => ClothingItem::whereNotNull('category')->distinct()->orderBy('category')->pluck('category')->merge($defaultCategories)->unique()->sort()->values(),
+            'colors' => ClothingItem::whereNotNull('color')->distinct()->orderBy('color')->pluck('color'),
+            'brands' => ClothingItem::whereNotNull('brand')->distinct()->orderBy('brand')->pluck('brand'),
+        ];
     }
 
     protected function storePhoto(Request $request): ?string

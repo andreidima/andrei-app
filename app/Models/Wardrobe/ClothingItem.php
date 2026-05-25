@@ -14,6 +14,13 @@ class ClothingItem extends Model
     protected $table = 'wardrobe_clothing_items';
     protected $guarded = [];
 
+    public function displayName(): string
+    {
+        return $this->name ?: collect([$this->brand, $this->color, $this->category])
+            ->filter()
+            ->join(' ');
+    }
+
     public function path(): string
     {
         return route('wardrobe.clothing-items.show', $this);

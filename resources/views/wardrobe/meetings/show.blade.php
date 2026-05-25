@@ -4,7 +4,7 @@
 <div class="container">
     <div class="card shadow-sm">
         <div class="card-header culoare2 text-white d-flex justify-content-between align-items-center">
-            <span class="fs-5"><i class="fa-solid fa-calendar-days me-1"></i>{{ $meeting->title ?: 'Meeting' }}</span>
+            <span class="fs-5"><i class="fa-solid fa-calendar-days me-1"></i>{{ $meeting->displayTitle() }}</span>
             <a href="{{ route('wardrobe.meetings.edit', $meeting) }}" class="btn btn-sm btn-primary text-white">Edit</a>
         </div>
         <div class="card-body">
@@ -23,10 +23,10 @@
                 <div class="col-md-8">
                     <dl class="row">
                         <dt class="col-md-3">Date</dt>
-                        <dd class="col-md-9">{{ $meeting->met_at?->format('Y-m-d H:i') }}</dd>
+                        <dd class="col-md-9">{{ $meeting->met_at?->format('Y-m-d') }}</dd>
                         <dt class="col-md-3">Location</dt>
                         <dd class="col-md-9">{{ $meeting->location ?: '-' }}</dd>
-                        <dt class="col-md-3">People</dt>
+                        <dt class="col-md-3">Contacts</dt>
                         <dd class="col-md-9">
                             @forelse ($meeting->people as $person)
                                 <a href="{{ route('wardrobe.people.show', $person) }}" class="badge bg-primary text-white text-decoration-none">{{ $person->name }}</a>
