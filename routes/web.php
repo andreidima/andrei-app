@@ -12,6 +12,9 @@ use App\Http\Controllers\System\DatabaseController;
 use App\Http\Controllers\System\UserController;
 use App\Http\Controllers\RefrainController;
 use App\Http\Controllers\AchievementController;
+use App\Http\Controllers\Wardrobe\ClothingItemController;
+use App\Http\Controllers\Wardrobe\MeetingController;
+use App\Http\Controllers\Wardrobe\PersonController;
 
 /*
 |--------------------------------------------------------------------------
@@ -106,4 +109,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::resource('refrains', RefrainController::class)->middleware('can:access-admin-area');
 
     Route::get('/achievements', [AchievementController::class, 'index'])->name('achievements.index')->middleware('can:access-admin-area');
+
+    Route::group(['prefix' => 'wardrobe', 'as' => 'wardrobe.', 'middleware' => 'can:access-admin-area'], function () {
+        Route::redirect('/', '/wardrobe/meetings')->name('index');
+        Route::resource('people', PersonController::class);
+        Route::resource('clothing-items', ClothingItemController::class)
+            ->parameters(['clothing-items' => 'clothingItem']);
+        Route::resource('meetings', MeetingController::class);
+    });
 });

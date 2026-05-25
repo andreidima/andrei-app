@@ -108,6 +108,31 @@
                             </a>
                         </li>
                         <li class="nav-item me-3 dropdown">
+                            <a class="nav-link active dropdown-toggle {{ request()->routeIs('wardrobe.*') ? 'shadow shadow-light' : 'text-white' }}" href="#" id="navbarWardrobeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-shirt me-1"></i>
+                                Wardrobe
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarWardrobeDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('wardrobe.meetings.index') }}">
+                                        <i class="fa-solid fa-calendar-days me-1"></i>Meetings
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('wardrobe.people.index') }}">
+                                        <i class="fa-solid fa-users me-1"></i>People
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('wardrobe.clothing-items.index') }}">
+                                        <i class="fa-solid fa-shirt me-1"></i>Clothing items
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item me-3 dropdown">
                             <a class="nav-link active dropdown-toggle" href="#" id="navbarTechDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fa-solid fa-screwdriver-wrench me-1"></i>
                                 Tech
