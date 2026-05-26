@@ -48,63 +48,64 @@
         <div class="card-body">
             @include('errors.errors')
 
-            <div class="row g-3">
+            <div class="d-flex flex-column gap-3">
                 @forelse ($meetings as $meeting)
-                    <div class="col-12">
-                        <div class="border rounded p-3">
-                            <div class="row g-3 align-items-start">
-                                <div class="col-md-2">
+                    <div class="border rounded p-3">
+                        <div class="row g-3 align-items-start">
+                            <div class="col-12 col-xl-3">
+                                <div class="d-flex flex-wrap gap-2">
                                     @if ($meeting->outfitPhotoUrl())
-                                        <img src="{{ $meeting->outfitPhotoUrl() }}" alt="Outfit photo" class="img-fluid img-thumbnail" style="width: 100%; max-height: 220px; object-fit: cover;">
+                                        <img src="{{ $meeting->outfitPhotoUrl() }}" alt="Outfit photo" class="img-thumbnail" style="width: 190px; height: 190px; object-fit: cover;">
+                                    @endif
+
+                                    @forelse ($meeting->clothingItems as $clothingItem)
+                                        <a href="{{ route('wardrobe.clothing-items.show', $clothingItem) }}" class="text-decoration-none text-dark text-center" title="{{ $clothingItem->name }}">
+                                            @if ($clothingItem->photoUrl())
+                                                <img src="{{ $clothingItem->photoUrl() }}" alt="{{ $clothingItem->name }}" class="img-thumbnail d-block" style="width: 150px; height: 150px; object-fit: cover;">
+                                            @else
+                                                <span class="d-flex align-items-center justify-content-center bg-light border rounded" style="width: 150px; height: 150px;">
+                                                    <i class="fa-solid fa-shirt fa-2x text-muted"></i>
+                                                </span>
+                                            @endif
+                                            <span class="small d-block text-truncate" style="max-width: 150px;">{{ $clothingItem->name }}</span>
+                                        </a>
+                                    @empty
+                                        <span class="text-muted">No items selected.</span>
+                                    @endforelse
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-xl-7">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                    <h2 class="h5 mb-0">{{ $meeting->displayTitle(false) }}</h2>
+                                    <span class="badge bg-secondary">{{ $meeting->met_at?->format('d.m.Y') }}</span>
+                                    @if ($meeting->location)
+                                        <span class="badge bg-info text-dark">{{ $meeting->location }}</span>
                                     @endif
                                 </div>
-                                <div class="col-md-7">
-                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                                        <h2 class="h5 mb-0">{{ $meeting->displayTitle() }}</h2>
-                                        <span class="badge bg-secondary">{{ $meeting->met_at?->format('Y-m-d') }}</span>
-                                        @if ($meeting->location)
-                                            <span class="badge bg-info text-dark">{{ $meeting->location }}</span>
-                                        @endif
-                                    </div>
-                                    <div class="mb-2">
-                                        @forelse ($meeting->people as $person)
-                                            <a href="{{ route('wardrobe.people.show', $person) }}" class="badge bg-primary text-white text-decoration-none">{{ $person->name }}</a>
-                                        @empty
-                                            <span class="text-muted">No contacts selected.</span>
-                                        @endforelse
-                                    </div>
-                                    @if ($meeting->clothes_description)
-                                        <div>{!! nl2br(e($meeting->clothes_description)) !!}</div>
-                                    @endif
+                                <div class="mb-2">
+                                    @forelse ($meeting->people as $person)
+                                        <a href="{{ route('wardrobe.people.show', $person) }}" class="badge bg-primary text-white text-decoration-none">{{ $person->name }}</a>
+                                    @empty
+                                        <span class="text-muted">No contacts selected.</span>
+                                    @endforelse
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="d-flex flex-wrap gap-2 justify-content-md-end mb-3">
-                                        @forelse ($meeting->clothingItems as $clothingItem)
-                                            <a href="{{ route('wardrobe.clothing-items.show', $clothingItem) }}" class="text-decoration-none text-dark text-center" title="{{ $clothingItem->name }}">
-                                                @if ($clothingItem->photoUrl())
-                                                    <img src="{{ $clothingItem->photoUrl() }}" alt="{{ $clothingItem->name }}" class="img-thumbnail d-block" style="width: 58px; height: 58px; object-fit: cover;">
-                                                @else
-                                                    <span class="d-flex align-items-center justify-content-center bg-light border rounded" style="width: 58px; height: 58px;">
-                                                        <i class="fa-solid fa-shirt text-muted"></i>
-                                                    </span>
-                                                @endif
-                                                <span class="small d-block text-truncate" style="max-width: 58px;">{{ $clothingItem->name }}</span>
-                                            </a>
-                                        @empty
-                                            <span class="text-muted">No items selected.</span>
-                                        @endforelse
-                                    </div>
-                                    <div class="text-md-end">
-                                        <a href="{{ route('wardrobe.meetings.show', $meeting) }}" class="badge bg-success text-decoration-none">View</a>
-                                        <a href="{{ route('wardrobe.meetings.edit', $meeting) }}" class="badge bg-primary text-decoration-none">Edit</a>
-                                        <a href="#" class="badge bg-danger text-decoration-none" data-bs-toggle="modal" data-bs-target="#deleteMeeting{{ $meeting->id }}">Delete</a>
-                                    </div>
+                                @if ($meeting->clothes_description)
+                                    <div>{!! nl2br(e($meeting->clothes_description)) !!}</div>
+                                @endif
+                            </div>
+
+                            <div class="col-12 col-xl-2">
+                                <div class="d-grid gap-2">
+                                    <a href="{{ route('wardrobe.meetings.show', $meeting) }}" class="btn btn-sm btn-success text-white">View</a>
+                                    <a href="{{ route('wardrobe.meetings.edit', $meeting) }}" class="btn btn-sm btn-primary text-white">Edit</a>
+                                    <a href="#" class="btn btn-sm btn-danger text-white" data-bs-toggle="modal" data-bs-target="#deleteMeeting{{ $meeting->id }}">Delete</a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 @empty
-                    <div class="col-12 text-center text-muted py-4">No meetings found.</div>
+                    <div class="text-center text-muted py-4">No meetings found.</div>
                 @endforelse
             </div>
 

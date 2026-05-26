@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+<div class="container-fluid px-3">
     <div class="card shadow-sm">
         <div class="card-header culoare2 text-white">
             <div class="row align-items-center g-2">
@@ -56,12 +56,12 @@
                     <tbody>
                         @forelse ($clothingItems as $clothingItem)
                             <tr>
-                                <td style="width: 74px;">
+                                <td style="width: 180px;">
                                     @if ($clothingItem->photoUrl())
-                                        <img src="{{ $clothingItem->photoUrl() }}" alt="{{ $clothingItem->name }}" class="img-thumbnail" style="width: 56px; height: 56px; object-fit: cover;">
+                                        <img src="{{ $clothingItem->photoUrl() }}" alt="{{ $clothingItem->name }}" class="img-thumbnail" style="width: 160px; height: 160px; object-fit: cover;">
                                     @else
-                                        <span class="d-inline-flex align-items-center justify-content-center bg-light border rounded" style="width: 56px; height: 56px;">
-                                            <i class="fa-solid fa-shirt text-muted"></i>
+                                        <span class="d-inline-flex align-items-center justify-content-center bg-light border rounded" style="width: 160px; height: 160px;">
+                                            <i class="fa-solid fa-shirt fa-2x text-muted"></i>
                                         </span>
                                     @endif
                                 </td>

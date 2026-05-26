@@ -27,17 +27,27 @@ class Meeting extends Model
         return $this->outfit_photo_path ? Storage::disk('public')->url($this->outfit_photo_path) : null;
     }
 
-    public function displayTitle(): string
+    public function contactsLabel(): string
+    {
+        return $this->relationLoaded('people')
+            ? $this->people->pluck('name')->join(', ')
+            : $this->people()->pluck('name')->join(', ');
+    }
+
+    public function displayTitle(bool $includeDate = true): string
     {
         if ($this->title) {
             return $this->title;
         }
 
-        $contacts = $this->relationLoaded('people')
-            ? $this->people->pluck('name')->join(', ')
-            : $this->people()->pluck('name')->join(', ');
+        $contacts = $this->contactsLabel();
+        $date = $this->met_at?->format('d.m.Y');
 
-        return trim(($contacts ?: 'Meeting') . ' - ' . $this->met_at?->format('Y-m-d'));
+        if (! $includeDate) {
+            return $contacts ?: 'Meeting';
+        }
+
+        return trim(($contacts ?: 'Meeting') . ($date ? ' - ' . $date : ''));
     }
 
     public function people(): BelongsToMany
