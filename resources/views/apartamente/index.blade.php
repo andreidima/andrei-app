@@ -17,7 +17,7 @@
                             class="form-control rounded-3"
                             name="search"
                             value="{{ $search }}"
-                            placeholder="Adresa, localitate, agentie">
+                            placeholder="Adresa, localitate, agentie, agent, referinta">
                     </div>
                     <div class="col-lg-4">
                         <select name="status" class="form-select rounded-3">
@@ -52,9 +52,11 @@
                         <th class="text-white culoare2">#</th>
                         <th class="text-white culoare2">Apartament</th>
                         <th class="text-white culoare2">Status</th>
+                        <th class="text-white culoare2">Decizie</th>
                         <th class="text-white culoare2">Vizionare</th>
                         <th class="text-white culoare2 text-end">Pret</th>
                         <th class="text-white culoare2">Date</th>
+                        <th class="text-white culoare2">Agentie</th>
                         <th class="text-white culoare2">Plus / minus</th>
                         <th class="text-white culoare2 text-center">Scor</th>
                         <th class="text-white culoare2 text-end">Actiuni</th>
@@ -69,18 +71,30 @@
                                 <div class="text-muted">{{ $apartament->localitate }}</div>
                                 @if ($apartament->link_anunt)
                                     <a href="{{ $apartament->link_anunt }}" target="_blank" rel="noopener noreferrer" class="small">
-                                        <i class="fa-solid fa-up-right-from-square me-1"></i>Anunt
+                                        <i class="fa-solid fa-up-right-from-square me-1"></i>{{ $apartament->sursa_anunt ?: 'Anunt' }}
                                     </a>
+                                    @if ($apartament->referinta_anunt)
+                                        <span class="small text-muted">#{{ $apartament->referinta_anunt }}</span>
+                                    @endif
                                 @endif
                             </td>
                             <td>
                                 <span class="badge {{ $apartament->status_badge }}">{{ $apartament->status_label }}</span>
                             </td>
                             <td>
+                                {{ $apartament->decision_label ?: '-' }}
+                                @if ($apartament->prioritate)
+                                    <div class="small text-muted">P{{ $apartament->prioritate }}</div>
+                                @endif
+                            </td>
+                            <td>
                                 {{ $apartament->vizionare_at ? $apartament->vizionare_at->format('d.m.Y H:i') : '-' }}
                             </td>
                             <td class="text-end">
                                 {{ $apartament->pret ? number_format($apartament->pret, 0, ',', '.') . ' EUR' : '-' }}
+                                @if ($apartament->pret_maxim_oferta)
+                                    <div class="small text-muted">max {{ number_format($apartament->pret_maxim_oferta, 0, ',', '.') }} EUR</div>
+                                @endif
                             </td>
                             <td>
                                 @if ($apartament->camere)
@@ -90,7 +104,16 @@
                                     {{ $apartament->suprafata_mp }} mp<br>
                                 @endif
                                 @if (! is_null($apartament->etaj))
-                                    Etaj {{ $apartament->etaj }}
+                                    Etaj {{ $apartament->etaj }}{{ $apartament->etaje_cladire ? '/' . $apartament->etaje_cladire : '' }}<br>
+                                @endif
+                                @if ($apartament->peb)
+                                    PEB {{ $apartament->peb }}
+                                @endif
+                            </td>
+                            <td>
+                                {{ $apartament->agency?->name ?: $apartament->agentie ?: '-' }}
+                                @if ($apartament->agent_contact)
+                                    <div class="small text-muted">{{ $apartament->agent_contact }}</div>
                                 @endif
                             </td>
                             <td style="min-width: 16rem;">
@@ -119,7 +142,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center">Nu exista apartamente pentru cautarea curenta.</td>
+                            <td colspan="11" class="text-center">Nu exista apartamente pentru cautarea curenta.</td>
                         </tr>
                     @endforelse
                 </tbody>
