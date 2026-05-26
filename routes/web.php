@@ -110,6 +110,14 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::get('/achievements', [AchievementController::class, 'index'])->name('achievements.index')->middleware('can:access-admin-area');
 
+    Route::get('/storage/wardrobe/{path}', function (string $path) {
+        $storagePath = 'wardrobe/' . $path;
+
+        abort_unless(\Illuminate\Support\Facades\Storage::disk('public')->exists($storagePath), 404);
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->response($storagePath);
+    })->where('path', '.*')->name('wardrobe.storage')->middleware('can:access-admin-area');
+
     Route::group(['prefix' => 'wardrobe', 'as' => 'wardrobe.', 'middleware' => 'can:access-admin-area'], function () {
         Route::redirect('/', '/wardrobe/meetings')->name('index');
         Route::resource('people', PersonController::class);
