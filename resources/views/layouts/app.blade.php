@@ -35,125 +35,60 @@
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         @can('access-admin-area')
-                        <li class="nav-item me-3">
-                            <a class="nav-link active" aria-current="page" href="/notificari">
-                                <i class="fa-solid fa-envelope me-1"></i>Notificări
+                        <li class="nav-item me-2">
+                            <a class="nav-link rounded-3 {{ request()->routeIs('notificari.index') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('notificari.index') }}" title="Notificari">
+                                <i class="fa-solid fa-envelope"></i>
                             </a>
                         </li>
-                        <li class="nav-item me-3 dropdown">
-                            <a class="nav-link active dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fa-solid fa-bars me-1"></i>
-                                Apps
+                        <li class="nav-item me-2 dropdown">
+                            <a class="nav-link dropdown-toggle rounded-3 {{ request()->routeIs('apps.*') || request()->routeIs('validsoftware-blog.*') ? 'shadow shadow-light' : 'text-white' }}" href="#" id="navbarAppsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-bars me-1"></i>Apps
                             </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li>
-                                    <a class="dropdown-item" href="/apps/aplicatii">
-                                        <i class="fa-solid fa-bars me-1"></i>Aplicații
-                                    </a>
-                                </li>
+                            <ul class="dropdown-menu" aria-labelledby="navbarAppsDropdown">
+                                <li><a class="dropdown-item" href="/apps/aplicatii"><i class="fa-solid fa-bars me-1"></i>Aplicatii</a></li>
+                                <li><a class="dropdown-item" href="/apps/features"><i class="fa-solid fa-layer-group me-1"></i>Features</a></li>
+                                <li><a class="dropdown-item" href="/apps/actualizari"><i class="fa-solid fa-pen-to-square me-1"></i>Actualizari</a></li>
+                                <li><a class="dropdown-item" href="/apps/pontaje?searchData={{ \Carbon\Carbon::now()->toDateString(); }}"><i class="fa-solid fa-clock me-1"></i>Pontaje</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="/apps/features">
-                                        <i class="fa-solid fa-layer-group me-1"></i>Features
-                                    </a>
-                                </li>
+                                <li><a class="dropdown-item" href="/apps/pontaje/statistica"><i class="fa-solid fa-chart-simple me-1"></i>Statistica</a></li>
+                                <li><a class="dropdown-item" href="/apps/pontaje/statistica-grafice"><i class="fa-solid fa-chart-column me-1"></i>Statistica - grafice</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="/apps/actualizari">
-                                        <i class="fa-solid fa-pen-to-square me-1"></i>Actualizări
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="/apps/pontaje?searchData={{ \Carbon\Carbon::now()->toDateString(); }}">
-                                        <i class="fa-solid fa-clock me-1"></i>Pontaje
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="/apps/pontaje/statistica">
-                                        <i class="fa-solid fa-chart-simple me-1"></i>Statistică
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="/apps/pontaje/statistica-grafice">
-                                        <i class="fa-solid fa-chart-column me-1"></i>Statistică - grafice
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="/apps/facturi">
-                                        <i class="fa-solid fa-file-invoice me-1"></i>Facturi
-                                    </a>
-                                </li>
+                                <li><a class="dropdown-item" href="/apps/facturi"><i class="fa-solid fa-file-invoice me-1"></i>Facturi</a></li>
+                                <li><a class="dropdown-item" href="{{ route('validsoftware-blog.index') }}"><i class="fa-solid fa-newspaper me-1"></i>Articole ValidSoftware</a></li>
                             </ul>
                         </li>
                         @endcan
                         @can('access-apartments')
-                        <li class="nav-item me-3">
+                        <li class="nav-item me-2">
                             <a class="nav-link rounded-3 {{ request()->routeIs('apartamente.*') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('apartamente.index') }}">
                                 <i class="fa-solid fa-building me-1"></i> Apartamente
                             </a>
                         </li>
                         @endcan
                         @can('access-admin-area')
-                        <li class="nav-item me-3">
-                            <a class="nav-link rounded-3 {{ request()->routeIs('refrains.index') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('refrains.index') }}">
-                                <i class="fa-solid fa-ban me-1"></i> Refrains
+                        <li class="nav-item me-2 dropdown">
+                            <a class="nav-link dropdown-toggle rounded-3 {{ request()->routeIs('apartamente.*') || request()->routeIs('refrains.*') || request()->routeIs('achievements.*') || request()->routeIs('wardrobe.*') ? 'shadow shadow-light' : 'text-white' }}" href="#" id="navbarPersonalDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-user me-1"></i>Personal
                             </a>
-                        </li>
-                        <li class="nav-item me-3">
-                            <a class="nav-link rounded-3 {{ request()->routeIs('achievements.index') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('achievements.index') }}">
-                                <i class="fa-solid fa-trophy me-1"></i> Achievements
-                            </a>
-                        </li>
-                        <li class="nav-item me-3">
-                            <a class="nav-link rounded-3 {{ request()->routeIs('validsoftware-blog.*') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('validsoftware-blog.index') }}">
-                                <i class="fa-solid fa-newspaper me-1"></i> Articole ValidSoftware
-                            </a>
-                        </li>
-                        <li class="nav-item me-3 dropdown">
-                            <a class="nav-link active dropdown-toggle {{ request()->routeIs('wardrobe.*') ? 'shadow shadow-light' : 'text-white' }}" href="#" id="navbarWardrobeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fa-solid fa-shirt me-1"></i>
-                                Wardrobe
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarWardrobeDropdown">
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('wardrobe.meetings.index') }}">
-                                        <i class="fa-solid fa-calendar-days me-1"></i>Meetings
-                                    </a>
-                                </li>
+                            <ul class="dropdown-menu" aria-labelledby="navbarPersonalDropdown">
+                                <li><a class="dropdown-item" href="{{ route('apartamente.index') }}"><i class="fa-solid fa-building me-1"></i>Apartamente</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('wardrobe.people.index') }}">
-                                        <i class="fa-solid fa-users me-1"></i>Contacts
-                                    </a>
-                                </li>
+                                <li><a class="dropdown-item" href="{{ route('refrains.index') }}"><i class="fa-solid fa-ban me-1"></i>Refrains</a></li>
+                                <li><a class="dropdown-item" href="{{ route('achievements.index') }}"><i class="fa-solid fa-trophy me-1"></i>Achievements</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('wardrobe.clothing-items.index') }}">
-                                        <i class="fa-solid fa-shirt me-1"></i>Clothing items
-                                    </a>
-                                </li>
+                                <li><a class="dropdown-item" href="{{ route('wardrobe.meetings.index') }}"><i class="fa-solid fa-calendar-days me-1"></i>Wardrobe meetings</a></li>
+                                <li><a class="dropdown-item" href="{{ route('wardrobe.people.index') }}"><i class="fa-solid fa-users me-1"></i>Wardrobe contacts</a></li>
+                                <li><a class="dropdown-item" href="{{ route('wardrobe.clothing-items.index') }}"><i class="fa-solid fa-shirt me-1"></i>Wardrobe clothing</a></li>
                             </ul>
                         </li>
-                        <li class="nav-item me-3 dropdown">
-                            <a class="nav-link active dropdown-toggle" href="#" id="navbarTechDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fa-solid fa-screwdriver-wrench me-1"></i>
-                                Tech
+                        <li class="nav-item me-2 dropdown">
+                            <a class="nav-link dropdown-toggle rounded-3 {{ request()->routeIs('system.*') ? 'shadow shadow-light' : 'text-white' }}" href="#" id="navbarTechDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-screwdriver-wrench me-1"></i>Tech
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarTechDropdown">
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('system.database') }}">
-                                        <i class="fa-solid fa-database me-1"></i>Database & migrations
-                                    </a>
-                                </li>
+                                <li><a class="dropdown-item" href="{{ route('system.database') }}"><i class="fa-solid fa-database me-1"></i>Database & migrations</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('system.users.index') }}">
-                                        <i class="fa-solid fa-users-gear me-1"></i>Users
-                                    </a>
-                                </li>
+                                <li><a class="dropdown-item" href="{{ route('system.users.index') }}"><i class="fa-solid fa-users-gear me-1"></i>Users</a></li>
                             </ul>
                         </li>
                         @endcan
@@ -214,8 +149,8 @@
             </p>
             <span class="text-white">
                 <a href="https://validsoftware.ro/dezvoltare-aplicatii-web-personalizate/" class="text-white" target="_blank">
-                    Aplicație web</a>
-                dezvoltată de
+                    Aplicatie web</a>
+                dezvoltata de
                 <a href="https://validsoftware.ro/" class="text-white" target="_blank">
                     validsoftware.ro
                 </a>
