@@ -107,6 +107,11 @@
                                 <i class="fa-solid fa-trophy me-1"></i> Achievements
                             </a>
                         </li>
+                        <li class="nav-item me-3">
+                            <a class="nav-link rounded-3 {{ request()->routeIs('validsoftware-blog.*') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('validsoftware-blog.index') }}">
+                                <i class="fa-solid fa-newspaper me-1"></i> Articole ValidSoftware
+                            </a>
+                        </li>
                         <li class="nav-item me-3 dropdown">
                             <a class="nav-link active dropdown-toggle {{ request()->routeIs('wardrobe.*') ? 'shadow shadow-light' : 'text-white' }}" href="#" id="navbarWardrobeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fa-solid fa-shirt me-1"></i>

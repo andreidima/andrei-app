@@ -15,6 +15,8 @@ use App\Http\Controllers\AchievementController;
 use App\Http\Controllers\Wardrobe\ClothingItemController;
 use App\Http\Controllers\Wardrobe\MeetingController;
 use App\Http\Controllers\Wardrobe\PersonController;
+use App\Http\Controllers\ValidSoftwareBlog\BlogArticleController;
+use App\Http\Controllers\ValidSoftwareBlog\BlogProjectController;
 
 /*
 |--------------------------------------------------------------------------
@@ -109,6 +111,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::resource('refrains', RefrainController::class)->middleware('can:access-admin-area');
 
     Route::get('/achievements', [AchievementController::class, 'index'])->name('achievements.index')->middleware('can:access-admin-area');
+
+    Route::group(['prefix' => 'articole-validsoftware', 'as' => 'validsoftware-blog.', 'middleware' => 'can:access-admin-area'], function () {
+        Route::get('/', [BlogArticleController::class, 'index'])->name('index');
+        Route::resource('proiecte', BlogProjectController::class)
+            ->parameters(['proiecte' => 'project'])
+            ->names('projects');
+        Route::resource('articole', BlogArticleController::class)
+            ->parameters(['articole' => 'article'])
+            ->except(['index'])
+            ->names('articles');
+    });
 
     Route::get('/storage/wardrobe/{path}', function (string $path) {
         $storagePath = 'wardrobe/' . $path;
