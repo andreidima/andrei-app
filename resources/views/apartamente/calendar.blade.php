@@ -7,8 +7,7 @@
 
 <style>
     .appointments-page {
-        max-width: 1440px;
-        margin: 0 auto;
+        width: 100%;
     }
 
     .appointments-header,

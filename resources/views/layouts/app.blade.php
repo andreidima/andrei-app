@@ -58,26 +58,17 @@
                             </ul>
                         </li>
                         @endcan
-                        @can('access-apartments')
-                        <li class="nav-item me-2">
-                            <a class="nav-link rounded-3 {{ request()->routeIs('apartamente.index', 'apartamente.show', 'apartamente.create', 'apartamente.edit') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('apartamente.index') }}">
-                                <i class="fa-solid fa-building me-1"></i> Apartamente
-                            </a>
-                        </li>
-                        <li class="nav-item me-2">
-                            <a class="nav-link rounded-3 {{ request()->routeIs('apartamente.calendar') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('apartamente.calendar') }}">
-                                <i class="fa-solid fa-calendar-days me-1"></i> Vizionari
-                            </a>
-                        </li>
-                        @endcan
-                        @can('access-admin-area')
+                        @canany(['access-admin-area', 'access-apartments'])
                         <li class="nav-item me-2 dropdown">
                             <a class="nav-link dropdown-toggle rounded-3 {{ request()->routeIs('apartamente.*') || request()->routeIs('refrains.*') || request()->routeIs('achievements.*') || request()->routeIs('wardrobe.*') ? 'shadow shadow-light' : 'text-white' }}" href="#" id="navbarPersonalDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fa-solid fa-user me-1"></i>Personal
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarPersonalDropdown">
+                                @can('access-apartments')
                                 <li><a class="dropdown-item" href="{{ route('apartamente.index') }}"><i class="fa-solid fa-building me-1"></i>Apartamente</a></li>
                                 <li><a class="dropdown-item" href="{{ route('apartamente.calendar') }}"><i class="fa-solid fa-calendar-days me-1"></i>Vizionari apartamente</a></li>
+                                @endcan
+                                @can('access-admin-area')
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ route('refrains.index') }}"><i class="fa-solid fa-ban me-1"></i>Refrains</a></li>
                                 <li><a class="dropdown-item" href="{{ route('achievements.index') }}"><i class="fa-solid fa-trophy me-1"></i>Achievements</a></li>
@@ -85,8 +76,11 @@
                                 <li><a class="dropdown-item" href="{{ route('wardrobe.meetings.index') }}"><i class="fa-solid fa-calendar-days me-1"></i>Wardrobe meetings</a></li>
                                 <li><a class="dropdown-item" href="{{ route('wardrobe.people.index') }}"><i class="fa-solid fa-users me-1"></i>Wardrobe contacts</a></li>
                                 <li><a class="dropdown-item" href="{{ route('wardrobe.clothing-items.index') }}"><i class="fa-solid fa-shirt me-1"></i>Wardrobe clothing</a></li>
+                                @endcan
                             </ul>
                         </li>
+                        @endcanany
+                        @can('access-admin-area')
                         <li class="nav-item me-2 dropdown">
                             <a class="nav-link dropdown-toggle rounded-3 {{ request()->routeIs('system.*') ? 'shadow shadow-light' : 'text-white' }}" href="#" id="navbarTechDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fa-solid fa-screwdriver-wrench me-1"></i>Tech
