@@ -87,6 +87,10 @@ Route::group(['middleware' => 'auth'], function () {
     });
 
     // Apartamente routes
+    Route::get('apartamente/calendar', [ApartamentController::class, 'calendar'])
+        ->name('apartamente.calendar')
+        ->middleware('can:access-apartments');
+
     Route::resource('apartamente', ApartamentController::class)
         ->parameters(['apartamente' => 'apartament'])
         ->middleware('can:access-apartments');

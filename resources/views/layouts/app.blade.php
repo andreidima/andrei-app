@@ -60,8 +60,13 @@
                         @endcan
                         @can('access-apartments')
                         <li class="nav-item me-2">
-                            <a class="nav-link rounded-3 {{ request()->routeIs('apartamente.*') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('apartamente.index') }}">
+                            <a class="nav-link rounded-3 {{ request()->routeIs('apartamente.index', 'apartamente.show', 'apartamente.create', 'apartamente.edit') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('apartamente.index') }}">
                                 <i class="fa-solid fa-building me-1"></i> Apartamente
+                            </a>
+                        </li>
+                        <li class="nav-item me-2">
+                            <a class="nav-link rounded-3 {{ request()->routeIs('apartamente.calendar') ? 'shadow shadow-light' : 'text-white' }}" href="{{ route('apartamente.calendar') }}">
+                                <i class="fa-solid fa-calendar-days me-1"></i> Vizionari
                             </a>
                         </li>
                         @endcan
@@ -72,6 +77,7 @@
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarPersonalDropdown">
                                 <li><a class="dropdown-item" href="{{ route('apartamente.index') }}"><i class="fa-solid fa-building me-1"></i>Apartamente</a></li>
+                                <li><a class="dropdown-item" href="{{ route('apartamente.calendar') }}"><i class="fa-solid fa-calendar-days me-1"></i>Vizionari apartamente</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ route('refrains.index') }}"><i class="fa-solid fa-ban me-1"></i>Refrains</a></li>
                                 <li><a class="dropdown-item" href="{{ route('achievements.index') }}"><i class="fa-solid fa-trophy me-1"></i>Achievements</a></li>

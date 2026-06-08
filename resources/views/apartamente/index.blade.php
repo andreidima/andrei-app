@@ -36,9 +36,14 @@
             </form>
         </div>
         <div class="col-lg-3 text-end">
-            <a class="btn btn-sm btn-success text-white border border-dark rounded-3 col-md-8" href="{{ url()->current() }}/adauga" role="button">
-                <i class="fas fa-plus-square text-white me-1"></i>Adauga apartament
-            </a>
+            <div class="d-flex flex-column flex-md-row justify-content-end gap-2">
+                <a class="btn btn-sm btn-outline-primary rounded-3" href="{{ route('apartamente.calendar') }}" role="button">
+                    <i class="fa-solid fa-calendar-days me-1"></i>Vizionari
+                </a>
+                <a class="btn btn-sm btn-success text-white border border-dark rounded-3" href="{{ route('apartamente.create') }}" role="button">
+                    <i class="fas fa-plus-square text-white me-1"></i>Adauga
+                </a>
+            </div>
         </div>
     </div>
 

@@ -6,10 +6,79 @@ use App\Models\Apartament;
 use App\Models\Agency;
 use App\Models\Agent;
 use App\Models\ApartmentInteraction;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ApartamentController extends Controller
 {
+    public function calendar(Request $request)
+    {
+        $request->session()->forget('apartamentReturnUrl');
+
+        $monthQuery = $request->query('month', now()->format('Y-m'));
+        try {
+            $month = now()->startOfMonth();
+
+            if (preg_match('/^\d{4}-\d{2}$/', $monthQuery)) {
+                $candidate = Carbon::createFromFormat('Y-m-d', $monthQuery . '-01')->startOfMonth();
+                $month = $candidate->format('Y-m') === $monthQuery ? $candidate : $month;
+            }
+        } catch (\Throwable) {
+            $month = now()->startOfMonth();
+        }
+
+        $calendarStart = $month->copy()->startOfWeek(Carbon::MONDAY);
+        $calendarEnd = $month->copy()->endOfMonth()->endOfWeek(Carbon::SUNDAY);
+        $today = now()->startOfDay();
+
+        $appointments = Apartament::query()
+            ->with(['agency', 'agent'])
+            ->whereNotNull('vizionare_at')
+            ->whereBetween('vizionare_at', [$calendarStart->copy()->startOfDay(), $calendarEnd->copy()->endOfDay()])
+            ->orderBy('vizionare_at')
+            ->orderByDesc('prioritate')
+            ->get();
+
+        $appointmentsByDate = $appointments->groupBy(fn (Apartament $apartament) => $apartament->vizionare_at->toDateString());
+
+        $calendarDays = collect();
+        for ($date = $calendarStart->copy(); $date->lte($calendarEnd); $date->addDay()) {
+            $calendarDays->push([
+                'date' => $date->copy(),
+                'in_month' => $date->isSameMonth($month),
+                'is_today' => $date->isSameDay($today),
+                'appointments' => $appointmentsByDate->get($date->toDateString(), collect()),
+            ]);
+        }
+
+        $upcomingAppointments = Apartament::query()
+            ->with(['agency', 'agent'])
+            ->whereNotNull('vizionare_at')
+            ->where('vizionare_at', '>=', now()->startOfDay())
+            ->whereNotIn('status', ['respins'])
+            ->orderBy('vizionare_at')
+            ->orderByDesc('prioritate')
+            ->limit(12)
+            ->get();
+
+        $nextAppointment = $upcomingAppointments->first();
+        $appointmentsThisWeek = Apartament::query()
+            ->whereNotNull('vizionare_at')
+            ->whereBetween('vizionare_at', [now()->startOfDay(), now()->endOfWeek(Carbon::SUNDAY)])
+            ->whereNotIn('status', ['respins'])
+            ->count();
+
+        return view('apartamente.calendar', [
+            'month' => $month,
+            'previousMonth' => $month->copy()->subMonth()->format('Y-m'),
+            'nextMonth' => $month->copy()->addMonth()->format('Y-m'),
+            'calendarDays' => $calendarDays,
+            'upcomingAppointments' => $upcomingAppointments,
+            'nextAppointment' => $nextAppointment,
+            'appointmentsThisWeek' => $appointmentsThisWeek,
+        ]);
+    }
+
     public function index(Request $request)
     {
         $request->session()->forget('apartamentReturnUrl');
