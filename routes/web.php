@@ -8,6 +8,7 @@ use App\Http\Controllers\Apps\PontajController;
 use App\Http\Controllers\Apps\FacturaController;
 use App\Http\Controllers\Apps\FeatureController;
 use App\Http\Controllers\ApartamentController;
+use App\Http\Controllers\ApartmentListingTrackerController;
 use App\Http\Controllers\System\DatabaseController;
 use App\Http\Controllers\System\UserController;
 use App\Http\Controllers\RefrainController;
@@ -87,6 +88,22 @@ Route::group(['middleware' => 'auth'], function () {
     });
 
     // Apartamente routes
+    Route::get('apartamente/tracking', [ApartmentListingTrackerController::class, 'index'])
+        ->name('apartamente.tracking.index')
+        ->middleware('can:access-apartments');
+    Route::post('apartamente/tracking/searches', [ApartmentListingTrackerController::class, 'storeSearch'])
+        ->name('apartamente.tracking.searches.store')
+        ->middleware('can:access-apartments');
+    Route::get('apartamente/tracking/searches/{search}/import', [ApartmentListingTrackerController::class, 'import'])
+        ->name('apartamente.tracking.searches.import')
+        ->middleware('can:access-apartments');
+    Route::post('apartamente/tracking/searches/{search}/import', [ApartmentListingTrackerController::class, 'storeImport'])
+        ->name('apartamente.tracking.searches.import.store')
+        ->middleware('can:access-apartments');
+    Route::post('apartamente/tracking/events/{event}/review', [ApartmentListingTrackerController::class, 'reviewEvent'])
+        ->name('apartamente.tracking.events.review')
+        ->middleware('can:access-apartments');
+
     Route::get('apartamente/calendar', [ApartamentController::class, 'calendar'])
         ->name('apartamente.calendar')
         ->middleware('can:access-apartments');

@@ -67,6 +67,7 @@
                                 @can('access-apartments')
                                 <li><a class="dropdown-item" href="{{ route('apartamente.index') }}"><i class="fa-solid fa-building me-1"></i>Apartamente</a></li>
                                 <li><a class="dropdown-item" href="{{ route('apartamente.calendar') }}"><i class="fa-solid fa-calendar-days me-1"></i>Vizionari apartamente</a></li>
+                                <li><a class="dropdown-item" href="{{ route('apartamente.tracking.index') }}"><i class="fa-solid fa-chart-line me-1"></i>Monitorizare anunturi</a></li>
                                 @endcan
                                 @can('access-admin-area')
                                 <li><hr class="dropdown-divider"></li>
