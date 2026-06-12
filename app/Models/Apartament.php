@@ -16,7 +16,11 @@ class Apartament extends Model
 
     protected $casts = [
         'vizionare_at' => 'datetime',
+        'adaugat_in_lista_at' => 'datetime',
+        'ultima_verificare_at' => 'datetime',
         'pret' => 'integer',
+        'pret_initial' => 'integer',
+        'pret_curent' => 'integer',
         'pret_maxim_oferta' => 'integer',
         'cheltuieli_lunare' => 'integer',
         'costuri_extra_estimate' => 'integer',
@@ -62,6 +66,7 @@ class Apartament extends Model
     public function getStatusLabelAttribute()
     {
         return [
+            'de_urmarit' => 'De urmarit',
             'de_vazut' => 'De vazut',
             'programat' => 'Programat',
             'vazut' => 'Vazut',
@@ -76,6 +81,7 @@ class Apartament extends Model
     public function getStatusBadgeAttribute()
     {
         return [
+            'de_urmarit' => 'bg-warning text-dark',
             'de_vazut' => 'bg-secondary',
             'programat' => 'bg-info text-dark',
             'vazut' => 'bg-success',
@@ -95,6 +101,26 @@ class Apartament extends Model
             'shortlist' => 'Shortlist',
             'candidat_oferta' => 'Candidat oferta',
         ][$this->decizie] ?? $this->decizie;
+    }
+
+    public function getStatusAnuntLabelAttribute(): ?string
+    {
+        return [
+            'activ' => 'Activ',
+            'pret_schimbat' => 'Pret schimbat',
+            'sub_oferta' => 'Sub oferta',
+            'vandut' => 'Vandut',
+            'sters' => 'Sters',
+        ][$this->status_anunt] ?? $this->status_anunt;
+    }
+
+    public function getWatchlistPriceDifferenceAttribute(): ?int
+    {
+        if (is_null($this->pret_initial) || is_null($this->pret_curent)) {
+            return null;
+        }
+
+        return $this->pret_curent - $this->pret_initial;
     }
 
     public function getAgentContactAttribute(): ?string

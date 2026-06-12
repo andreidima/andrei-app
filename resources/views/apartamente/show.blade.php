@@ -41,6 +41,34 @@
                                 <td class="pe-4">Vizionare</td>
                                 <td>{{ $apartament->vizionare_at ? $apartament->vizionare_at->format('d.m.Y H:i') : '' }}</td>
                             </tr>
+                            @if ($apartament->status === 'de_urmarit' || $apartament->adaugat_in_lista_at || $apartament->pret_initial || $apartament->pret_curent || $apartament->status_anunt || $apartament->ultima_verificare_at)
+                                <tr>
+                                    <td class="pe-4">Monitorizare anunt</td>
+                                    <td>
+                                        @if ($apartament->adaugat_in_lista_at)
+                                            Adaugat in lista: {{ $apartament->adaugat_in_lista_at->format('d.m.Y H:i') }}<br>
+                                        @endif
+                                        @if ($apartament->pret_initial)
+                                            Pret initial: {{ number_format($apartament->pret_initial, 0, ',', '.') }} EUR<br>
+                                        @endif
+                                        @if ($apartament->pret_curent)
+                                            Pret curent: {{ number_format($apartament->pret_curent, 0, ',', '.') }} EUR<br>
+                                        @endif
+                                        @if (! is_null($apartament->watchlist_price_difference) && $apartament->watchlist_price_difference !== 0)
+                                            Diferenta: {{ $apartament->watchlist_price_difference > 0 ? '+' : '' }}{{ number_format($apartament->watchlist_price_difference, 0, ',', '.') }} EUR<br>
+                                        @endif
+                                        @if ($apartament->status_anunt)
+                                            Status anunt: {{ $apartament->status_anunt_label }}<br>
+                                        @endif
+                                        @if ($apartament->ultima_verificare_at)
+                                            Ultima verificare: {{ $apartament->ultima_verificare_at->format('d.m.Y H:i') }}<br>
+                                        @endif
+                                        @if ($apartament->observatii_status_anunt)
+                                            {!! nl2br(e($apartament->observatii_status_anunt)) !!}
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endif
                             <tr>
                                 <td class="pe-4">Pret</td>
                                 <td>

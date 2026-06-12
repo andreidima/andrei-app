@@ -69,7 +69,7 @@
                 </thead>
                 <tbody>
                     @forelse ($apartamente as $apartament)
-                        <tr>
+                        <tr class="{{ $apartament->status === 'de_urmarit' ? 'table-warning' : '' }}">
                             <td>{{ ($apartamente->currentpage() - 1) * $apartamente->perpage() + $loop->index + 1 }}</td>
                             <td>
                                 <div class="fw-bold">{{ $apartament->adresa }}</div>
@@ -85,6 +85,9 @@
                             </td>
                             <td>
                                 <span class="badge {{ $apartament->status_badge }}">{{ $apartament->status_label }}</span>
+                                @if ($apartament->status_anunt)
+                                    <div class="small text-muted mt-1">Anunt: {{ $apartament->status_anunt_label }}</div>
+                                @endif
                             </td>
                             <td>
                                 {{ $apartament->decision_label ?: '-' }}
@@ -93,10 +96,36 @@
                                 @endif
                             </td>
                             <td>
-                                {{ $apartament->vizionare_at ? $apartament->vizionare_at->format('d.m.Y H:i') : '-' }}
+                                @if ($apartament->status === 'de_urmarit')
+                                    @if ($apartament->adaugat_in_lista_at)
+                                        <div><span class="fw-bold">Adaugat:</span> {{ $apartament->adaugat_in_lista_at->format('d.m.Y') }}</div>
+                                    @endif
+                                    @if ($apartament->ultima_verificare_at)
+                                        <div class="small text-muted">Verificat: {{ $apartament->ultima_verificare_at->format('d.m.Y') }}</div>
+                                    @endif
+                                    @if (! $apartament->adaugat_in_lista_at && ! $apartament->ultima_verificare_at)
+                                        De urmarit
+                                    @endif
+                                @else
+                                    {{ $apartament->vizionare_at ? $apartament->vizionare_at->format('d.m.Y H:i') : '-' }}
+                                @endif
                             </td>
                             <td class="text-end">
-                                {{ $apartament->pret ? number_format($apartament->pret, 0, ',', '.') . ' EUR' : '-' }}
+                                @if ($apartament->pret_initial || $apartament->pret_curent)
+                                    @if ($apartament->pret_initial)
+                                        <div>Initial: {{ number_format($apartament->pret_initial, 0, ',', '.') }} EUR</div>
+                                    @endif
+                                    @if ($apartament->pret_curent)
+                                        <div>Curent: {{ number_format($apartament->pret_curent, 0, ',', '.') }} EUR</div>
+                                    @endif
+                                    @if (! is_null($apartament->watchlist_price_difference) && $apartament->watchlist_price_difference !== 0)
+                                        <div class="small {{ $apartament->watchlist_price_difference < 0 ? 'text-success' : 'text-danger' }}">
+                                            {{ $apartament->watchlist_price_difference > 0 ? '+' : '' }}{{ number_format($apartament->watchlist_price_difference, 0, ',', '.') }} EUR
+                                        </div>
+                                    @endif
+                                @else
+                                    {{ $apartament->pret ? number_format($apartament->pret, 0, ',', '.') . ' EUR' : '-' }}
+                                @endif
                                 @if ($apartament->pret_maxim_oferta)
                                     <div class="small text-muted">max {{ number_format($apartament->pret_maxim_oferta, 0, ',', '.') }} EUR</div>
                                 @endif

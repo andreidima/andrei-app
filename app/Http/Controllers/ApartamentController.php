@@ -118,8 +118,9 @@ class ApartamentController extends Controller
         $statusOptions = $this->statusOptions();
         $decisionOptions = $this->decisionOptions();
         $interactionOptions = $this->interactionOptions();
+        $listingStatusOptions = $this->listingStatusOptions();
 
-        return view('apartamente.create', compact('statusOptions', 'decisionOptions', 'interactionOptions'));
+        return view('apartamente.create', compact('statusOptions', 'decisionOptions', 'interactionOptions', 'listingStatusOptions'));
     }
 
     public function store(Request $request)
@@ -151,8 +152,9 @@ class ApartamentController extends Controller
         $statusOptions = $this->statusOptions();
         $decisionOptions = $this->decisionOptions();
         $interactionOptions = $this->interactionOptions();
+        $listingStatusOptions = $this->listingStatusOptions();
 
-        return view('apartamente.edit', compact('apartament', 'statusOptions', 'decisionOptions', 'interactionOptions'));
+        return view('apartamente.edit', compact('apartament', 'statusOptions', 'decisionOptions', 'interactionOptions', 'listingStatusOptions'));
     }
 
     public function update(Request $request, Apartament $apartament)
@@ -183,8 +185,14 @@ class ApartamentController extends Controller
             'motiv_respingere' => 'nullable|max:5000',
             'prioritate' => 'nullable|integer|min:1|max:5',
             'vizionare_at' => 'nullable|date',
+            'adaugat_in_lista_at' => 'nullable|date',
             'pret' => 'nullable|integer|min:0',
+            'pret_initial' => 'nullable|integer|min:0',
+            'pret_curent' => 'nullable|integer|min:0',
             'pret_maxim_oferta' => 'nullable|integer|min:0',
+            'ultima_verificare_at' => 'nullable|date',
+            'status_anunt' => 'nullable|max:100',
+            'observatii_status_anunt' => 'nullable|max:5000',
             'cheltuieli_lunare' => 'nullable|integer|min:0',
             'costuri_extra_estimate' => 'nullable|integer|min:0',
             'venit_cadastral' => 'nullable|integer|min:0',
@@ -243,6 +251,8 @@ class ApartamentController extends Controller
         unset($validated['agent_nume'], $validated['agent_email'], $validated['agent_telefon']);
         unset($validated['interaction_type'], $validated['interaction_at'], $validated['interaction_notes']);
 
+        $this->applyWatchlistDefaults($validated);
+
         [$agency, $agent] = $this->resolveAgencyAndAgent(
             $validated['agentie'] ?? null,
             $agentName,
@@ -266,6 +276,7 @@ class ApartamentController extends Controller
     protected function statusOptions()
     {
         return [
+            'de_urmarit' => 'De urmarit',
             'de_vazut' => 'De vazut',
             'programat' => 'Programat',
             'vazut' => 'Vazut',
@@ -274,6 +285,17 @@ class ApartamentController extends Controller
             'astept_raspuns' => 'Astept raspuns',
             'respins' => 'Respins',
             'oferta' => 'Oferta',
+        ];
+    }
+
+    protected function listingStatusOptions(): array
+    {
+        return [
+            'activ' => 'Activ',
+            'pret_schimbat' => 'Pret schimbat',
+            'sub_oferta' => 'Sub oferta',
+            'vandut' => 'Vandut',
+            'sters' => 'Sters',
         ];
     }
 
@@ -330,6 +352,28 @@ class ApartamentController extends Controller
         ])->save();
 
         return [$agency, $agent];
+    }
+
+    private function applyWatchlistDefaults(array &$validated): void
+    {
+        if (($validated['status'] ?? null) !== 'de_urmarit') {
+            return;
+        }
+
+        $validated['adaugat_in_lista_at'] ??= now();
+        $validated['status_anunt'] = $validated['status_anunt'] ?: 'activ';
+
+        if (empty($validated['pret_initial']) && ! empty($validated['pret'])) {
+            $validated['pret_initial'] = $validated['pret'];
+        }
+
+        if (empty($validated['pret_curent']) && ! empty($validated['pret'])) {
+            $validated['pret_curent'] = $validated['pret'];
+        }
+
+        if (empty($validated['pret']) && ! empty($validated['pret_curent'])) {
+            $validated['pret'] = $validated['pret_curent'];
+        }
     }
 
     private function recordInitialInteraction(Apartament $apartament, array $interactionData): void

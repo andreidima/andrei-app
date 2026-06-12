@@ -1,4 +1,8 @@
 @csrf
+@php
+    $selectedStatus = old('status', $apartament->status ?: 'de_vazut');
+    $defaultWatchlistDate = $selectedStatus === 'de_urmarit' && ! $apartament->exists ? now()->format('Y-m-d\TH:i') : '';
+@endphp
 
 <div class="row mb-0 px-3">
     <div class="col-lg-12 px-4 py-2 mb-0">
@@ -43,6 +47,56 @@
             <div class="col-lg-3 mb-4">
                 <label for="pret_maxim_oferta" class="mb-0 ps-3">Pret maxim oferta EUR</label>
                 <input type="number" min="0" class="form-control bg-white rounded-3 {{ $errors->has('pret_maxim_oferta') ? 'is-invalid' : '' }}" name="pret_maxim_oferta" value="{{ old('pret_maxim_oferta', $apartament->pret_maxim_oferta) }}">
+            </div>
+            <div class="col-lg-12 mb-3">
+                <div class="border rounded-3 p-3 bg-light">
+                    <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mb-3">
+                        <div>
+                            <div class="fw-bold">Monitorizare anunt / De urmarit</div>
+                            <div class="small text-muted">Foloseste campurile acestea pentru apartamente salvate inainte sa ceri sau sa programezi vizionarea.</div>
+                        </div>
+                        <span class="badge bg-warning text-dark align-self-start">De urmarit</span>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <label for="adaugat_in_lista_at" class="mb-0 ps-3">Adaugat in lista</label>
+                            <input
+                                type="datetime-local"
+                                class="form-control bg-white rounded-3 {{ $errors->has('adaugat_in_lista_at') ? 'is-invalid' : '' }}"
+                                name="adaugat_in_lista_at"
+                                value="{{ old('adaugat_in_lista_at', $apartament->adaugat_in_lista_at ? $apartament->adaugat_in_lista_at->format('Y-m-d\TH:i') : $defaultWatchlistDate) }}">
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <label for="pret_initial" class="mb-0 ps-3">Pret initial EUR</label>
+                            <input type="number" min="0" class="form-control bg-white rounded-3 {{ $errors->has('pret_initial') ? 'is-invalid' : '' }}" name="pret_initial" value="{{ old('pret_initial', $apartament->pret_initial) }}">
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <label for="pret_curent" class="mb-0 ps-3">Pret curent EUR</label>
+                            <input type="number" min="0" class="form-control bg-white rounded-3 {{ $errors->has('pret_curent') ? 'is-invalid' : '' }}" name="pret_curent" value="{{ old('pret_curent', $apartament->pret_curent) }}">
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <label for="ultima_verificare_at" class="mb-0 ps-3">Ultima verificare</label>
+                            <input
+                                type="datetime-local"
+                                class="form-control bg-white rounded-3 {{ $errors->has('ultima_verificare_at') ? 'is-invalid' : '' }}"
+                                name="ultima_verificare_at"
+                                value="{{ old('ultima_verificare_at', $apartament->ultima_verificare_at ? $apartament->ultima_verificare_at->format('Y-m-d\TH:i') : '') }}">
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <label for="status_anunt" class="mb-0 ps-3">Status anunt</label>
+                            <select class="form-select bg-white rounded-3 {{ $errors->has('status_anunt') ? 'is-invalid' : '' }}" name="status_anunt">
+                                <option value="">Fara status</option>
+                                @foreach ($listingStatusOptions as $value => $label)
+                                    <option value="{{ $value }}" @selected(old('status_anunt', $apartament->status_anunt ?: ($selectedStatus === 'de_urmarit' ? 'activ' : null)) === $value)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-lg-9 mb-3">
+                            <label for="observatii_status_anunt" class="mb-0 ps-3">Observatii status anunt</label>
+                            <textarea class="form-control bg-white {{ $errors->has('observatii_status_anunt') ? 'is-invalid' : '' }}" name="observatii_status_anunt" rows="2">{{ old('observatii_status_anunt', $apartament->observatii_status_anunt) }}</textarea>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="col-lg-3 mb-4">
                 <label for="cheltuieli_lunare" class="mb-0 ps-3">Cheltuieli lunare EUR</label>
